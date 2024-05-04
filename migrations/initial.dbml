@@ -1,0 +1,178 @@
+// Use DBML to define your database structure
+// Docs: https://dbml.dbdiagram.io/docs
+
+Table admins {
+  id uuid [primary key, default: `gen_random_uuid()`]
+  username varchar [not null, unique]
+  password varchar [not null]
+  role varchar //can decide later
+  email varchar [not null]
+  gender varchar [not null]
+  dob date [not null]
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+}
+
+Table doctors {
+  id uuid [primary key, default: `gen_random_uuid()`]
+  username varchar [not null, unique]
+  password varchar [not null]
+  first_name varchar [not null]
+  last_name varchar [not null]
+  email varchar [not null]
+  gender varchar [not null]
+  dob date [not null]
+  phone varchar [not null]
+  address text [not null]
+  profile_picture varchar [not null] //url_string
+  tax decimal
+  is_active boolean [default: true]
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+}
+
+Table academics {
+  id SERIAL [pk]
+  degree_title varchar [not null]
+  institution varchar [not null]
+  year integer [not null]
+  doctor_id uuid [ref: > doctors.id, not null]
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+}
+
+Table achievements {
+  id SERIAL [pk]
+  title varchar [not null]
+  description text [not null]
+  year integer [not null]
+  doctor_id uuid [ref: > doctors.id, not null]
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+}
+
+Table certificates {
+  id SERIAL [pk]
+  title varchar [not null]
+  issuer varchar [not null]
+  year_obtained integer [not null]
+  doctor_id uuid [ref: > doctors.id, not null]
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+}
+
+Table experiences {
+  id SERIAL [pk]
+  title varchar [not null] // Job title or position
+  company varchar [not null] // Company name
+  description text // Job description and responsibilities
+  start_date date // Start date of the experience
+  end_date date // End date of the experience (optional)
+  is_current boolean [default: false] // Whether the experience is currently ongoing
+  doctor_id uuid [ref: > doctors.id, not null] // Foreign key referencing the doctor
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+}
+
+Table doctor_schedules {
+  id SERIAL [pk]
+  doctor_id uuid [ref: > doctors.id, not null]
+  day_of_week integer [not null] // 1-7 monday - sunday
+  start_at time [not null] //postgre type time 09:00 Unix
+  end_at time [not null]  // 18:00 Unix
+  is_close boolean [default: false, not null ]
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+}
+
+Table doctor_treatments {
+  id SERIAL [primary key]
+  doctor_id uuid [ref: > doctors.id, not null]
+  name text [not null]
+  price int
+  duration int [not null]
+  duration_type text [not null] //Minutes Hour
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+}
+
+Table users {
+  id uuid [primary key, default: `gen_random_uuid()`]
+  password varchar [not null]
+  name varchar [not null]
+  email varchar [not null]
+  phone varchar [not null, unique]
+  nik varchar
+  profile_picture varchar //url_string
+  gender varchar [not null]
+  dob date [not null]
+  deleted_at timestamp
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+}
+
+Table user_appointment {
+  id SERIAL [primary key]
+  user_id uuid [ref: > users.id, not null]
+  doctor_id uuid [ref: > doctors.id, not null]
+  appointment_date timestamp
+  treatment text
+  duration varchar
+  duration_type varchar
+  deleted_at timestamp
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+}
+
+Table user_files {
+  id SERIAL [primary key]
+  user_id uuid [ref: > users.id, not null]
+  type varchar //Document, Scan File 3D
+  path varchar
+  name varchar
+  deleted_at timestamp
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+}
+
+Table user_treatments {
+  id SERIAL [primary key]
+  doctor_id uuid [ref: > doctors.id, not null]
+  user_id uuid [ref: > users.id, not null]
+  diagnosis varchar
+  assessment text // Bentuknya JSON bentuk [{ teeth: posisi 11, diagnosa: [{'sakit apa', 'sakit apa'}]}]
+  treatment varchar
+  examination_date timestamp
+  patient_note varchar
+  doctor_note varchar
+  deleted_at timestamp
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+}
+
+Table user_payments {
+  id SERIAL [primary key]
+  doctor_id uuid [ref: > doctors.id, not null]
+  user_id uuid [ref: > users.id, not null]
+  treatment_id integer [ref: > user_treatments.id, not null]
+  status varchar
+  total_price int
+  tax float
+  other_payments text // bentuknya json bisa aja nanti ada admin fee, app fee, etc
+  method varchar
+  detail text // list dari treatment yang dilakukan
+  deleted_at timestamp
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+}
+
+Table list_of_values {
+  id SERIAL [primary key]
+  value varchar
+  name varchar [not null]
+  category varchar [not null]
+}
+
+Table master_settings {
+  id SERIAL [primary key]
+  name varchar [not null]
+  value varchar [not null]
+  category varchar [not null]
+  is_active boolean [default: true]
+}
