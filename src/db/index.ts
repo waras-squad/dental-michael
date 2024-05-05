@@ -10,4 +10,7 @@ if (!db_url) {
 }
 
 const queryClient = postgres(db_url);
-export const db = drizzle(queryClient, { schema });
+export const db = drizzle(queryClient, {
+  schema,
+  logger: !(Bun.env.NODE_ENV === 'production'),
+});

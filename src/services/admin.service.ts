@@ -12,7 +12,11 @@ export class AdminService {
     //   .from(admins)
     //   .execute();
 
-    return await db.query.admins.findMany();
+    return await db.query.admins.findMany({
+      columns: {
+        password: false,
+      },
+    });
   }
 
   static async login(payload: ValidateAdminLogin) {
@@ -39,5 +43,11 @@ export class AdminService {
       dob: admin.dob,
       role: admin.role,
     };
+  }
+
+  static async findAdminById(id: string) {
+    return await db.query.admins.findFirst({
+      where: (admin, { eq }) => eq(admin.id, id),
+    });
   }
 }

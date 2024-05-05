@@ -1,3 +1,5 @@
+import { JwtName } from './enum';
+
 const mediciness = [
   'Abacavir',
   'Abrocitinib',
@@ -1311,3 +1313,33 @@ const teethPositions = [
   'Rongga Pipi Kanan',
   'Rongga Pipi Kiri',
 ];
+
+export const SUCCESS_MESSAGES = {
+  CREATE_PATIENT: 'Patient created successfully',
+  UPDATE_ENTITY: (entity: string, id: string | number) =>
+    `${entity} with id ${id} updated successfully`,
+  DELETE_ENTITY: (entity: string, id: string | number) =>
+    `${entity} with id ${id} deactivated successfully`,
+};
+
+export const ERROR_MESSAGES = {
+  CREATE_ENTITY: (entity: string) => `Failed to create ${entity}`,
+  UPDATE_ENTITY: (entity: string, id: string | number) =>
+    `Failed to update ${entity} with id ${id}`,
+  NOT_FOUND: (entity: string, id: string | number) =>
+    `${entity} with id ${id} not found`,
+  DUPLICATE: {
+    PHONE: 'Phone number already exists',
+    USERNAME: 'Username already exists',
+  },
+  ALREADY_DELETED: (entity: string) => `${entity} has already been deleted`,
+  DELETE_ENTITY: (entity: string, id: string | number) =>
+    `Failed to delete ${entity} with id ${id}`,
+  CHANGE_PASSWORD: 'Failed to change password',
+};
+
+export const JWT_SECRET_MAPPING: { [key in JwtName]: string } = {
+  adminJWT: Bun.env.ADMIN_JWT_SECRET!,
+  userJWT: Bun.env.USER_JWT_SECRET!,
+  doctorJWT: Bun.env.DOCTOR_JWT_SECRET!,
+};

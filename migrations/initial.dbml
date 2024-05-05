@@ -102,6 +102,7 @@ Table users {
   profile_picture varchar //url_string
   gender varchar [not null]
   dob date [not null]
+  created_by varchar [not null]
   deleted_at timestamp
   created_at timestamp [default: `CURRENT_TIMESTAMP`]
   updated_at timestamp [default: `CURRENT_TIMESTAMP`]
@@ -175,4 +176,15 @@ Table master_settings {
   value varchar [not null]
   category varchar [not null]
   is_active boolean [default: true]
+}
+
+Table account_activity_logs {
+  id int [pk, increment]
+  target_id uuid [not null]
+  actor_id uuid [not null]
+  action varchar [not null]
+  executed_at timestamp [default: `CURRENT_TIMESTAMP`]
+  target_type varchar [not null]
+  actor_type varchar [not null]
+  details json [not null]
 }

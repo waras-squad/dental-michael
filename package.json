@@ -5,7 +5,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "bun run --watch src/index.ts",
-    "start": "bun src/index.ts"
+    "build": "bun build src/index.ts --target bun --outfile=build/index.js",
+    "start": "bun build/index.js"
   },
   "dependencies": {
     "@elysiajs/cors": "^1.0.2",
@@ -13,9 +14,11 @@
     "@elysiajs/swagger": "^1.0.5",
     "drizzle-orm": "^0.30.10",
     "elysia": "latest",
-    "postgres": "^3.4.4"
+    "postgres": "^3.4.4",
+    "ts-luxon": "^4.5.2"
   },
   "devDependencies": {
+    "@flydotio/dockerfile": "^0.5.7",
     "bun-types": "latest"
   },
   "module": "src/index.js"

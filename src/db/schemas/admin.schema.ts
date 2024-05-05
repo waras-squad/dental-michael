@@ -1,23 +1,11 @@
-import {
-  pgTable,
-  uuid,
-  varchar,
-  timestamp,
-  date,
-  pgEnum,
-} from 'drizzle-orm/pg-core';
-import { enumToPgEnum } from '@/helpers/enumToPgEnum';
-
-export enum Gender {
-  MALE = 'MALE',
-  FEMALE = 'FEMALE',
-}
-
-// Declare drizzle enum
-export const genderEnum = pgEnum('gender', enumToPgEnum(Gender));
+import { pgTable, uuid, varchar, timestamp, date } from 'drizzle-orm/pg-core';
+import { genderEnum } from './schema-const';
+import { InferSelectModel, sql } from 'drizzle-orm';
 
 export const admins = pgTable('admins', {
-  id: uuid('id').primaryKey(),
+  id: uuid('id')
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   username: varchar('username').unique().notNull(),
   password: varchar('password').notNull(),
   role: varchar('role').notNull(),
@@ -27,3 +15,5 @@ export const admins = pgTable('admins', {
   created_at: timestamp('created_at').defaultNow(),
   updated_at: timestamp('updated_at').$onUpdateFn(() => new Date()),
 });
+
+export type Admin = InferSelectModel<typeof admins>;

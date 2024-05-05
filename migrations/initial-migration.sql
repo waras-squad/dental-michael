@@ -114,6 +114,7 @@ CREATE TABLE
     "profile_picture" varchar,
     "gender" varchar NOT NULL,
     "dob" date NOT NULL,
+    "created_by" varchar NOT NULL,
     "deleted_at" timestamp,
     "created_at" timestamp DEFAULT (CURRENT_TIMESTAMP),
     "updated_at" timestamp DEFAULT (CURRENT_TIMESTAMP)
