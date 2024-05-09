@@ -1333,12 +1333,20 @@ export const ERROR_MESSAGES = {
   DUPLICATE: {
     PHONE: 'Phone number already exists',
     USERNAME: 'Username already exists',
+    EMAIL: 'Email already exists',
+    NIK: 'NIK already exists',
   },
   ALREADY_DELETED: (entity: string) => `${entity} has already been deleted`,
   DELETE_ENTITY: (entity: string, id: string | number) =>
     `Failed to delete ${entity} with id ${id}`,
   CHANGE_PASSWORD: 'Failed to change password',
   UPLOAD_FILE: 'Failed to upload files',
+};
+
+export const CONSTRAINT_NAME = {
+  PATIENT_EMAIL: 'unique_user_email',
+  PATIENT_PHONE: 'users_phone_key',
+  PATIENT_NIK: 'users_nik_key',
 };
 
 export const JWT_SECRET_MAPPING: { [key in JwtName]: string } = {
