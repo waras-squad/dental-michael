@@ -2,8 +2,9 @@ import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 
 import * as schema from './schemas';
+import { env } from '@/validators';
 
-const db_url: string = Bun.env.DB_URL!;
+const db_url: string = env.DB_URL!;
 
 if (!db_url) {
   throw new Error('Please set DB_URL environment variable');
@@ -12,5 +13,5 @@ if (!db_url) {
 const queryClient = postgres(db_url);
 export const db = drizzle(queryClient, {
   schema,
-  logger: !(Bun.env.NODE_ENV === 'production'),
+  logger: !(env.NODE_ENV === 'production'),
 });

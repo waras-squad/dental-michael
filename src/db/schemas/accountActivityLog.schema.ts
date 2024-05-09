@@ -1,12 +1,5 @@
-import {
-  json,
-  pgTable,
-  serial,
-  timestamp,
-  uuid,
-  varchar,
-} from 'drizzle-orm/pg-core';
-import { accountTypeEnum, logActivityEnum } from './schema-const';
+import { json, pgTable, serial, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { accountTypeEnum, logActivityEnum } from './const';
 
 export const accountActivityLogs = pgTable('account_activity_logs', {
   id: serial('id').primaryKey(),

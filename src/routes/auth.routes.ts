@@ -2,6 +2,8 @@ import Elysia from 'elysia';
 import { AdminService } from '@/services';
 import jwt from '@elysiajs/jwt';
 import { validateAdminLogin } from '@/validators';
+import { JWT_SECRET_MAPPING } from '@/const';
+import { JwtName } from '@/enum';
 
 const AuthModels = new Elysia({ name: 'Model.Auth' }).model({
   'Admin-auth': validateAdminLogin,
@@ -11,8 +13,8 @@ export const authRoutes = new Elysia({ prefix: '/auth' })
   .use(AuthModels)
   .use(
     jwt({
-      name: 'adminJWT',
-      secret: Bun.env.ADMIN_JWT_SECRET!,
+      name: JwtName.ADMIN,
+      secret: JWT_SECRET_MAPPING.adminJWT,
     })
   )
   .group(

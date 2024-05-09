@@ -1,4 +1,5 @@
-import { JwtName } from './enum';
+import type { JwtName } from './enum';
+import { env } from '@/validators';
 
 const mediciness = [
   'Abacavir',
@@ -1320,6 +1321,7 @@ export const SUCCESS_MESSAGES = {
     `${entity} with id ${id} updated successfully`,
   DELETE_ENTITY: (entity: string, id: string | number) =>
     `${entity} with id ${id} deactivated successfully`,
+  UPLOAD_FILES: (uuid: string) => `Successfully upload files for user ${uuid}`,
 };
 
 export const ERROR_MESSAGES = {
@@ -1336,10 +1338,11 @@ export const ERROR_MESSAGES = {
   DELETE_ENTITY: (entity: string, id: string | number) =>
     `Failed to delete ${entity} with id ${id}`,
   CHANGE_PASSWORD: 'Failed to change password',
+  UPLOAD_FILE: 'Failed to upload files',
 };
 
 export const JWT_SECRET_MAPPING: { [key in JwtName]: string } = {
-  adminJWT: Bun.env.ADMIN_JWT_SECRET!,
-  userJWT: Bun.env.USER_JWT_SECRET!,
-  doctorJWT: Bun.env.DOCTOR_JWT_SECRET!,
+  adminJWT: env.ADMIN_JWT_SECRET,
+  userJWT: env.USER_JWT_SECRET,
+  doctorJWT: env.DOCTOR_JWT_SECRET,
 };

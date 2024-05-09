@@ -9,6 +9,7 @@ export enum AccountActivity {
   DELETE = 'DELETE',
   CHANGE_PASSWORD = 'CHANGE PASSWORD',
   REACTIVATE = 'REACTIVATE',
+  UPLOAD_FILE = 'UPLOAD FILE',
 }
 
 export enum AccountType {

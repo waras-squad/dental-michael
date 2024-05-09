@@ -1,6 +1,6 @@
 import { date, pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
-import { genderEnum } from './schema-const';
-import { sql } from 'drizzle-orm';
+import { genderEnum } from './const';
+import { InferSelectModel, sql } from 'drizzle-orm';
 
 export const patients = pgTable('users', {
   id: uuid('id')
@@ -19,3 +19,5 @@ export const patients = pgTable('users', {
   updated_at: timestamp('updated_at').$onUpdateFn(() => new Date()),
   deleted_at: timestamp('deleted_at'),
 });
+
+export type Patient = InferSelectModel<typeof patients>;

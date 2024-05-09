@@ -1,5 +1,5 @@
 import { pgTable, uuid, varchar, timestamp, date } from 'drizzle-orm/pg-core';
-import { genderEnum } from './schema-const';
+import { genderEnum } from './const';
 import { InferSelectModel, sql } from 'drizzle-orm';
 
 export const admins = pgTable('admins', {

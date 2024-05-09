@@ -27,3 +27,9 @@ export const changePasswordDTO = t.Object({
   new_password: t.String({ minLength: 5 }),
 });
 export type ChangePasswordDTO = Static<typeof changePasswordDTO>;
+
+export const uploadUserFileDTO = t.Object({
+  files: t.Files(),
+  type: t.Optional(t.String({ minLength: 1 })),
+});
+export type UploadUserFileDTO = Static<typeof uploadUserFileDTO>;

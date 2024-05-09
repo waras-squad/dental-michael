@@ -3,6 +3,7 @@ import { cors } from '@elysiajs/cors';
 
 import { adminRoutes, authRoutes } from './routes';
 import { swaggerConfig, responseInterceptor } from './middlewares';
+import { env } from './validators';
 
 const app = new Elysia();
 
@@ -22,7 +23,7 @@ app
   .group('/api', (app) => {
     return app.use(adminRoutes).use(authRoutes);
   })
-  .listen(Bun.env.port || 1000);
+  .listen(env.PORT);
 
 console.log(
   `🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`

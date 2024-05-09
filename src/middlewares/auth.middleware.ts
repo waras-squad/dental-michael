@@ -16,6 +16,7 @@ export const authMiddleware = (type: JwtName) => (app: Elysia) => {
           id: t.String(),
         }),
         secret: JWT_SECRET_MAPPING[type],
+        exp: '30d',
       })
     )
     .derive(async ({ adminJWT, doctorJWT, userJWT, request }) => {
@@ -34,23 +35,21 @@ export const authMiddleware = (type: JwtName) => (app: Elysia) => {
       }
 
       switch (type) {
-        case JwtName.ADMIN:
+        case JwtName.ADMIN: {
           const admin = await AdminService.findAdminById(payload.id);
-
           if (!admin) {
             return authenticationError();
           }
-
           return { admin };
+        }
 
-        case JwtName.USER:
+        case JwtName.USER: {
           const user = await PatientService.findPatientById(payload.id);
-
           if (!user) {
             return authenticationError();
           }
-
           return { user };
+        }
 
         case JwtName.DOCTOR:
           return {
