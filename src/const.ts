@@ -1316,7 +1316,7 @@ const teethPositions = [
 ];
 
 export const SUCCESS_MESSAGES = {
-  CREATE_PATIENT: 'Patient created successfully',
+  CREATE_ENTITY: (entity: string) => `${entity} created successfully`,
   UPDATE_ENTITY: (entity: string, id: string | number) =>
     `${entity} with id ${id} updated successfully`,
   DELETE_ENTITY: (entity: string, id: string | number) =>
@@ -1341,12 +1341,19 @@ export const ERROR_MESSAGES = {
     `Failed to delete ${entity} with id ${id}`,
   CHANGE_PASSWORD: 'Failed to change password',
   UPLOAD_FILE: 'Failed to upload files',
+  FORBIDDEN: 'You are not authorized to perform this action',
 };
 
 export const CONSTRAINT_NAME = {
-  PATIENT_EMAIL: 'unique_user_email',
-  PATIENT_PHONE: 'users_phone_key',
-  PATIENT_NIK: 'users_nik_key',
+  PATIENT: {
+    EMAIL: 'unique_user_email',
+    PHONE: 'users_phone_key',
+    NIK: 'users_nik_key',
+  },
+  ADMIN: {
+    USERNAME: 'admins_username_key',
+    EMAIL: 'admins_email_key',
+  },
 };
 
 export const JWT_SECRET_MAPPING: { [key in JwtName]: string } = {

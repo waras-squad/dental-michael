@@ -3,6 +3,7 @@ import Elysia from 'elysia';
 import { AdminService } from '@/services';
 import {
   changePasswordDTO,
+  createAdminDTO,
   createPatientDTO,
   editPatientDTO,
   getPatientListFilterDTO,
@@ -13,12 +14,16 @@ import { PatientService } from '@/services';
 import { authMiddleware } from '@/middlewares';
 import { UserFileService } from '@/services/userFile.service';
 
-const AdminModels = new Elysia({ name: 'Model.Admin' }).model({
+const patientModels = new Elysia({ name: 'Model.Admin.Patient' }).model({
   'Get-patient-filter': getPatientListFilterDTO,
   'Create-patient': createPatientDTO,
   'Update-patient': editPatientDTO,
   'Change-patient-password': changePasswordDTO,
   'Upload-patient-file': uploadUserFileDTO,
+});
+
+const adminModels = new Elysia({ name: 'Model.Admin.Admin' }).model({
+  'Create-Admin': createAdminDTO,
 });
 
 export const adminRoutes = new Elysia({
@@ -28,11 +33,10 @@ export const adminRoutes = new Elysia({
     security: [{ AdminAuth: [] }], //? Let all routes belongs to this group require admin authentication
   },
 })
-  .use(AdminModels)
   .use(authMiddleware(JwtName.ADMIN))
-  .get('/', async () => AdminService.list(), {})
   .group('/patients', (app) =>
     app
+      .use(patientModels)
       .get(
         '/',
         async ({ query }) => {
@@ -121,4 +125,20 @@ export const adminRoutes = new Elysia({
           },
         }
       )
+  )
+  .use(adminModels)
+  .get('/', async () => AdminService.list(), {})
+  .post(
+    '/',
+    async ({ admin, body }) => {
+      if (admin) {
+        return AdminService.create(body, admin);
+      }
+    },
+    {
+      body: 'Create-Admin',
+      detail: {
+        summary: 'Create new admin',
+      },
+    }
   );

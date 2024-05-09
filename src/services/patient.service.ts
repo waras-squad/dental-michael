@@ -103,17 +103,17 @@ export class PatientService {
           },
         });
       });
-      return SUCCESS_MESSAGES.CREATE_PATIENT;
+      return SUCCESS_MESSAGES.CREATE_ENTITY('Patient');
     } catch (error) {
       const constraint = (error as PostgresError).constraint_name;
       switch (constraint) {
-        case CONSTRAINT_NAME.PATIENT_PHONE:
-          return customError(409, ERROR_MESSAGES.DUPLICATE.PHONE);
-
-        case CONSTRAINT_NAME.PATIENT_EMAIL:
+        case CONSTRAINT_NAME.PATIENT.EMAIL:
           return customError(409, ERROR_MESSAGES.DUPLICATE.EMAIL);
 
-        case CONSTRAINT_NAME.PATIENT_NIK:
+        case CONSTRAINT_NAME.PATIENT.PHONE:
+          return customError(409, ERROR_MESSAGES.DUPLICATE.PHONE);
+
+        case CONSTRAINT_NAME.PATIENT.NIK:
           return customError(409, ERROR_MESSAGES.DUPLICATE.NIK);
       }
 
@@ -152,15 +152,15 @@ export class PatientService {
       return SUCCESS_MESSAGES.UPDATE_ENTITY('Patient', id);
     } catch (error) {
       console.error(error.message);
-
-      switch ((error as PostgresError).constraint_name) {
-        case CONSTRAINT_NAME.PATIENT_PHONE:
-          return customError(409, ERROR_MESSAGES.DUPLICATE.PHONE);
-
-        case CONSTRAINT_NAME.PATIENT_EMAIL:
+      const constraint = (error as PostgresError).constraint_name;
+      switch (constraint) {
+        case CONSTRAINT_NAME.PATIENT.EMAIL:
           return customError(409, ERROR_MESSAGES.DUPLICATE.EMAIL);
 
-        case CONSTRAINT_NAME.PATIENT_NIK:
+        case CONSTRAINT_NAME.PATIENT.PHONE:
+          return customError(409, ERROR_MESSAGES.DUPLICATE.PHONE);
+
+        case CONSTRAINT_NAME.PATIENT.NIK:
           return customError(409, ERROR_MESSAGES.DUPLICATE.NIK);
       }
       return customError(500, ERROR_MESSAGES.UPDATE_ENTITY('Patient', id));
