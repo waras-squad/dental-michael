@@ -1,5 +1,5 @@
 import { AccountActivity, AccountType, Gender } from '@/enum';
-import { enumToPgEnum } from '@/helpers/enumToPgEnum';
+import { enumToPgEnum } from '@/helpers';
 import { pgEnum } from 'drizzle-orm/pg-core';
 
 export const genderEnum = pgEnum('gender', enumToPgEnum(Gender));

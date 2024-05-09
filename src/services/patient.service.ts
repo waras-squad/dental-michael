@@ -1,23 +1,45 @@
-import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@/const';
+import { CONSTRAINT_NAME, ERROR_MESSAGES, SUCCESS_MESSAGES } from '@/const';
 import { db } from '@/db';
-import { Admin, patients } from '@/db/schemas';
-import { customError } from '@/helpers';
+import { Admin, Patient, patients } from '@/db/schemas';
+import { customError, formatPhone } from '@/helpers';
 import {
   ChangePasswordDTO,
   CreatePatientDTO,
   EditPatientDTO,
+  GetPatientListFilterDTO,
   PostgresError,
 } from '@/validators';
 import { AccountActivityLogService } from './accountActivityLog.service';
 import { AccountActivity, AccountType } from '@/enum';
-import { eq } from 'drizzle-orm';
+import { SQL, and, eq, ilike, isNotNull, isNull } from 'drizzle-orm';
 
 export class PatientService {
-  static async getList() {
+  static async getList(query: GetPatientListFilterDTO) {
+    const filters: SQL[] = [];
+
+    for (const key in query) {
+      const value = query[key as keyof GetPatientListFilterDTO];
+
+      if (typeof value === 'string') {
+        filters.push(ilike(patients[key as keyof Patient], `%${value}%`));
+      } else if (typeof value === 'number') {
+        filters.push(eq(patients[key as keyof Patient], value));
+      }
+    }
+
+    if (typeof query.is_deleted === 'boolean') {
+      filters.push(
+        query.is_deleted
+          ? isNotNull(patients.deleted_at)
+          : isNull(patients.deleted_at)
+      );
+    }
+
     return await db.query.patients.findMany({
       columns: {
         password: false,
       },
+      where: and(...filters),
     });
   }
 
@@ -41,7 +63,9 @@ export class PatientService {
   }
 
   static async create(payload: CreatePatientDTO, admin?: Admin) {
-    const { email, nik, gender, dob, name, phone, profile_picture } = payload;
+    const { email, nik, gender, dob, name, profile_picture } = payload;
+
+    const phone = formatPhone(payload.phone);
 
     const password = await Bun.password.hash(payload.password);
 
@@ -68,14 +92,29 @@ export class PatientService {
           action: AccountActivity.CREATE,
           target_type: AccountType.USER,
           actor_type: admin ? AccountType.ADMIN : AccountType.USER,
-          details: { email, nik, gender, dob, name, phone, profile_picture },
+          details: {
+            email,
+            nik,
+            gender,
+            dob,
+            name,
+            phone,
+            profile_picture,
+          },
         });
       });
       return SUCCESS_MESSAGES.CREATE_PATIENT;
     } catch (error) {
-      console.error(error.message);
-      if ((error as PostgresError).code === '23505') {
-        return customError(409, ERROR_MESSAGES.DUPLICATE.PHONE);
+      const constraint = (error as PostgresError).constraint_name;
+      switch (constraint) {
+        case CONSTRAINT_NAME.PATIENT_PHONE:
+          return customError(409, ERROR_MESSAGES.DUPLICATE.PHONE);
+
+        case CONSTRAINT_NAME.PATIENT_EMAIL:
+          return customError(409, ERROR_MESSAGES.DUPLICATE.EMAIL);
+
+        case CONSTRAINT_NAME.PATIENT_NIK:
+          return customError(409, ERROR_MESSAGES.DUPLICATE.NIK);
       }
 
       return customError(500, ERROR_MESSAGES.CREATE_ENTITY('Patient'));
@@ -83,9 +122,11 @@ export class PatientService {
   }
 
   static async update(id: string, payload: EditPatientDTO, admin?: Admin) {
-    const { email, nik, gender, dob, name, phone, profile_picture } = payload;
+    const { email, nik, gender, dob, name, profile_picture } = payload;
 
     const patient = await this.findPatientByIdOrThrowError(id);
+
+    const phone = payload.phone ? formatPhone(payload?.phone) : undefined;
 
     try {
       await db.transaction(async (tx) => {
@@ -111,8 +152,16 @@ export class PatientService {
       return SUCCESS_MESSAGES.UPDATE_ENTITY('Patient', id);
     } catch (error) {
       console.error(error.message);
-      if ((error as PostgresError).code === '23505') {
-        return customError(409, ERROR_MESSAGES.DUPLICATE.PHONE);
+
+      switch ((error as PostgresError).constraint_name) {
+        case CONSTRAINT_NAME.PATIENT_PHONE:
+          return customError(409, ERROR_MESSAGES.DUPLICATE.PHONE);
+
+        case CONSTRAINT_NAME.PATIENT_EMAIL:
+          return customError(409, ERROR_MESSAGES.DUPLICATE.EMAIL);
+
+        case CONSTRAINT_NAME.PATIENT_NIK:
+          return customError(409, ERROR_MESSAGES.DUPLICATE.NIK);
       }
       return customError(500, ERROR_MESSAGES.UPDATE_ENTITY('Patient', id));
     }

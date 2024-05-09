@@ -1,4 +1,4 @@
-import { customError } from '@/helpers/errorHandler';
+import { customError } from '@/helpers';
 import { ValidateAdminLogin } from '@/validators';
 import { db } from '@/db';
 

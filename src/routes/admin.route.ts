@@ -5,6 +5,7 @@ import {
   changePasswordDTO,
   createPatientDTO,
   editPatientDTO,
+  getPatientListFilterDTO,
   uploadUserFileDTO,
 } from '@/validators';
 import { JwtName } from '@/enum';
@@ -13,6 +14,7 @@ import { authMiddleware } from '@/middlewares';
 import { UserFileService } from '@/services/userFile.service';
 
 const AdminModels = new Elysia({ name: 'Model.Admin' }).model({
+  'Get-patient-filter': getPatientListFilterDTO,
   'Create-patient': createPatientDTO,
   'Update-patient': editPatientDTO,
   'Change-patient-password': changePasswordDTO,
@@ -33,10 +35,11 @@ export const adminRoutes = new Elysia({
     app
       .get(
         '/',
-        async () => {
-          return await PatientService.getList();
+        async ({ query }) => {
+          return await PatientService.getList(query);
         },
         {
+          query: 'Get-patient-filter',
           detail: {
             summary: 'Get all patients',
           },
