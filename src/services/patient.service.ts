@@ -7,23 +7,34 @@ import {
   CreatePatientDTO,
   EditPatientDTO,
   GetPatientListFilterDTO,
+  GetPatientSortBy,
   PostgresError,
 } from '@/validators';
 import { AccountActivityLogService } from './accountActivityLog.service';
 import { AccountActivity, AccountType } from '@/enum';
-import { SQL, and, eq, ilike, isNotNull, isNull } from 'drizzle-orm';
+import {
+  AnyColumn,
+  SQL,
+  and,
+  asc,
+  desc,
+  eq,
+  ilike,
+  isNotNull,
+  isNull,
+} from 'drizzle-orm';
+import { omit } from '../helpers/index';
 
 export class PatientService {
   static async getList(query: GetPatientListFilterDTO) {
     const filters: SQL[] = [];
 
-    for (const key in query) {
-      const value = query[key as keyof GetPatientListFilterDTO];
+    for (const key in omit(query, ['page', 'limit', 'sort'])) {
+      const value =
+        query[key as keyof Omit<GetPatientListFilterDTO, 'page' | 'limit'>];
 
       if (typeof value === 'string') {
         filters.push(ilike(patients[key as keyof Patient], `%${value}%`));
-      } else if (typeof value === 'number') {
-        filters.push(eq(patients[key as keyof Patient], value));
       }
     }
 
@@ -35,11 +46,20 @@ export class PatientService {
       );
     }
 
+    const column = query.sort || GetPatientSortBy.CREATED_AT_DESC;
+    const order = column.startsWith('-') ? desc : asc;
+
+    const limit = Number(query.limit) || 10;
+    const page = Number(query.page) || 1;
+
     return await db.query.patients.findMany({
       columns: {
         password: false,
       },
       where: and(...filters),
+      limit,
+      offset: (page - 1) * (limit ?? 10),
+      orderBy: order(column.replace('-', '') as unknown as AnyColumn<Patient>),
     });
   }
 

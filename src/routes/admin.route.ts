@@ -13,6 +13,7 @@ import { JwtName } from '@/enum';
 import { PatientService } from '@/services';
 import { authMiddleware } from '@/middlewares';
 import { UserFileService } from '@/services/userFile.service';
+import { getAllPatientFilterSwaggerParameter } from '@/utils';
 
 const patientModels = new Elysia({ name: 'Model.Admin.Patient' }).model({
   'Get-patient-filter': getPatientListFilterDTO,
@@ -46,6 +47,7 @@ export const adminRoutes = new Elysia({
           query: 'Get-patient-filter',
           detail: {
             summary: 'Get all patients',
+            parameters: getAllPatientFilterSwaggerParameter,
           },
         }
       )

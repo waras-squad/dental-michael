@@ -1,6 +1,21 @@
 import { Gender } from '@/enum';
 import { Static, t } from 'elysia';
 
+export enum GetPatientSortBy {
+  NAME = 'name',
+  NAME_DESC = '-name',
+  EMAIL = 'email',
+  EMAIL_DESC = '-email',
+  PHONE = 'phone',
+  PHONE_DESC = '-phone',
+  NIK = 'nik',
+  NIK_DESC = '-nik',
+  CREATED_AT = 'created_at',
+  CREATED_AT_DESC = '-created_at',
+  UPDATED_AT = 'updated_at',
+  UPDATED_AT_DESC = '-updated_at',
+}
+
 export const getPatientListFilterDTO = t.Object({
   name: t.Optional(t.String({ minLength: 1 })),
   email: t.Optional(t.String({ minLength: 1 })),
@@ -8,13 +23,25 @@ export const getPatientListFilterDTO = t.Object({
   gender: t.Optional(
     t.Enum(Gender, {
       error: "Gender have to be either 'MALE' OR 'FEMALE'",
-      description: "'MALE' or 'FEMALE'",
     })
   ),
   nik: t.Optional(t.String({ minLength: 1 })),
   created_by: t.Optional(t.String({ minLength: 1 })),
-  is_deleted: t.Optional(
-    t.BooleanString({ default: 'false', description: "'true' or 'false'" })
+  is_deleted: t.Optional(t.BooleanString({ default: 'false' })),
+  page: t.Optional(
+    t.RegExp('^[1-9][0-9]*$', {
+      error: 'page can only be integer start from 1',
+      default: '1',
+    })
+  ),
+  limit: t.Optional(
+    t.RegExp('^[1-9][0-9]*$', {
+      error: 'lpage can only be integer start from 1',
+      default: '10',
+    })
+  ),
+  sort: t.Optional(
+    t.Enum(GetPatientSortBy, { default: GetPatientSortBy.CREATED_AT })
   ),
 });
 

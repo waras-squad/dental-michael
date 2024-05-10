@@ -1,4 +1,4 @@
-import { error } from 'elysia';
+import { error, t } from 'elysia';
 
 // Takes an enum and return an array with each values
 export function enumToPgEnum(
