@@ -1,12 +1,14 @@
 import { Gender } from '@/enum';
 import { GetPatientSortBy } from '@/validators';
 
-export const getAllPatientFilterSwaggerParameter: {
+type SwaggarParameter = {
   in: string;
   name: string;
   description?: string;
   schema: Record<string, unknown>;
-}[] = [
+};
+
+export const getAllPatientFilterSwaggerParameter: SwaggarParameter[] = [
   {
     in: 'query',
     name: 'name',

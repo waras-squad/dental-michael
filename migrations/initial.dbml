@@ -6,7 +6,7 @@ Table admins {
   username varchar [not null, unique]
   password varchar [not null]
   role varchar //can decide later
-  email varchar [not null]
+  email varchar [not null unique]
   gender varchar [not null]
   dob date [not null]
   created_at timestamp [default: `CURRENT_TIMESTAMP`]
@@ -19,10 +19,10 @@ Table doctors {
   password varchar [not null]
   first_name varchar [not null]
   last_name varchar [not null]
-  email varchar [not null]
+  email varchar [not null unique]
   gender varchar [not null]
   dob date [not null]
-  phone varchar [not null]
+  phone varchar [not null unique]
   address text [not null]
   profile_picture varchar [not null] //url_string
   tax decimal
@@ -96,9 +96,9 @@ Table users {
   id uuid [primary key, default: `gen_random_uuid()`]
   password varchar [not null]
   name varchar [not null]
-  email varchar [not null]
+  email varchar [not null, unique]
   phone varchar [not null, unique]
-  nik varchar
+  nik varchar [unique]
   profile_picture varchar //url_string
   gender varchar [not null]
   dob date [not null]
@@ -179,7 +179,7 @@ Table master_settings {
 }
 
 Table account_activity_logs {
-  id int [pk, increment]
+  id SERIAL [primary key]
   target_id uuid [not null]
   actor_id uuid [not null]
   action varchar [not null]
