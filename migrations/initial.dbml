@@ -23,8 +23,9 @@ Table doctors {
   gender varchar [not null]
   dob date [not null]
   phone varchar [not null unique]
+  nik varchar [unique]
   address text [not null]
-  profile_picture varchar [not null] //url_string
+  profile_picture varchar //url_string
   tax decimal
   is_active boolean [default: true]
   created_at timestamp [default: `CURRENT_TIMESTAMP`]
@@ -88,6 +89,7 @@ Table doctor_treatments {
   price int
   duration int [not null]
   duration_type text [not null] //Minutes Hour
+  is_active boolean [default: true]
   created_at timestamp [default: `CURRENT_TIMESTAMP`]
   updated_at timestamp [default: `CURRENT_TIMESTAMP`]
 }

@@ -20,9 +20,9 @@ export const admins = pgTable('admins', {
 });
 
 export type Admin = InferSelectModel<typeof admins>;
-export const fullCreateAdminDTO = createInsertSchema(admins, {
-  gender: t.Enum(Gender, {
-    error: "Gender have to be either 'MALE' OR 'FEMALE'",
-    description: "'MALE' or 'FEMALE'",
-  }),
-});
+// export const fullCreateAdminDTO = createInsertSchema(admins, {
+//   gender: t.Enum(Gender, {
+//     error: "Gender have to be either 'MALE' OR 'FEMALE'",
+//     description: "'MALE' or 'FEMALE'",
+//   }),
+// });

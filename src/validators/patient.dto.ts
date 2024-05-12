@@ -25,7 +25,7 @@ export const getPatientListFilterDTO = t.Object({
       error: "Gender have to be either 'MALE' OR 'FEMALE'",
     })
   ),
-  nik: t.Optional(t.String({ minLength: 1 })),
+  nik: t.RegExp('^d{16}$', { error: 'Invalid NIK' }),
   created_by: t.Optional(t.String({ minLength: 1 })),
   is_deleted: t.Optional(t.BooleanString({ default: 'false' })),
   page: t.Optional(

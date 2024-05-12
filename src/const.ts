@@ -1322,6 +1322,8 @@ export const SUCCESS_MESSAGES = {
   DELETE_ENTITY: (entity: string, id: string | number) =>
     `${entity} with id ${id} deactivated successfully`,
   UPLOAD_FILES: (uuid: string) => `Successfully upload files for user ${uuid}`,
+  REACTIVATE_ENTITY: (entity: string, id: string | number) =>
+    `Successfully reactivated ${entity} with id ${id}`,
 };
 
 export const ERROR_MESSAGES = {
@@ -1337,11 +1339,16 @@ export const ERROR_MESSAGES = {
     NIK: 'NIK already exists',
   },
   ALREADY_DELETED: (entity: string) => `${entity} has already been deleted`,
+  ALREADY_ACTIVE: (entity: string, id: string | number) =>
+    `${entity} with id ${id} is already active`,
   DELETE_ENTITY: (entity: string, id: string | number) =>
     `Failed to delete ${entity} with id ${id}`,
+  REACTIVATE_ENTITY: (entity: string, id: string | number) =>
+    `Failed to reactivate ${entity} with id ${id}`,
   CHANGE_PASSWORD: 'Failed to change password',
   UPLOAD_FILE: 'Failed to upload files',
   FORBIDDEN: 'You are not authorized to perform this action',
+  WRONG_PASSWORD: 'Wrong password',
 };
 
 export const CONSTRAINT_NAME = {
@@ -1353,6 +1360,12 @@ export const CONSTRAINT_NAME = {
   ADMIN: {
     USERNAME: 'admins_username_key',
     EMAIL: 'admins_email_key',
+  },
+  DOCTOR: {
+    USERNAME: 'doctors_username_key',
+    EMAIL: 'doctors_email_key',
+    PHONE: 'doctors_phone_key',
+    NIK: 'doctors_nik_key',
   },
 };
 

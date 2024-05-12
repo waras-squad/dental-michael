@@ -4,7 +4,14 @@ export const swaggerConfig = swagger({
   provider: 'swagger-ui',
   documentation: {
     tags: [
-      { name: 'Admin', description: 'Endpoints for admins' },
+      {
+        name: 'Admin - Patient',
+        description: 'Endpoints for admins to interact with patients data',
+      },
+      {
+        name: 'Admin - Doctor',
+        description: 'Endpoints for admins to interact with doctors data',
+      },
       { name: 'Auth', description: 'Authentication endpoints' },
     ],
     info: {

@@ -204,7 +204,7 @@ export class PatientService {
       !patient ||
       !(await Bun.password.verify(patient.password, old_password))
     ) {
-      return customError(403, 'Wrong password');
+      return customError(403, ERROR_MESSAGES.WRONG_PASSWORD);
     }
 
     const password = await Bun.password.hash(new_password);
@@ -256,6 +256,37 @@ export class PatientService {
     } catch (error) {
       console.error(error.message);
       return customError(500, ERROR_MESSAGES.DELETE_ENTITY('Patient', id));
+    }
+  }
+
+  static async reactivate(id: string, admin: Admin) {
+    const patient = await this.findPatientByIdOrThrowError(id);
+
+    if (!patient.deleted_at) {
+      return customError(409, ERROR_MESSAGES.ALREADY_ACTIVE('Patient', id));
+    }
+
+    try {
+      await db.transaction(async (tx) => {
+        await tx
+          .update(patients)
+          .set({ deleted_at: null })
+          .where(eq(patients.id, id));
+
+        await AccountActivityLogService.insertToLog(tx, {
+          target_id: patient.id,
+          target_type: AccountType.USER,
+          actor_id: admin.id,
+          actor_type: AccountType.ADMIN,
+          action: AccountActivity.REACTIVATE,
+          details: { id, reactivated_by: admin.username },
+        });
+      });
+
+      return SUCCESS_MESSAGES.REACTIVATE_ENTITY('Patient', id);
+    } catch (error) {
+      console.error(error.message);
+      return customError(500, ERROR_MESSAGES.REACTIVATE_ENTITY('Patient', id));
     }
   }
 }
