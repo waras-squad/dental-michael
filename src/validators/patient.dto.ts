@@ -51,17 +51,18 @@ export const createPatientDTO = t.Object({
   email: t.String({ format: 'email', error: 'Invalid email' }),
   password: t.String({ minLength: 5 }),
   name: t.String({ minLength: 1 }),
-  phone: t.String({ minLength: 10 }),
+  phone: t.RegExp('^(\\+62|62|0)8[1-9][0-9]{6,9}$', {
+    error: 'Phone must be indonesian format',
+    minLength: 9,
+  }),
   nik: t.String({ minLength: 16, maxLength: 16, error: 'Invalid NIK' }),
   gender: t.Enum(Gender, {
     error: "Gender have to be either 'MALE' OR 'FEMALE'",
   }),
   dob: t.String({ format: 'date' }),
-  profile_picture: t.String({
-    format: 'uri',
-    examples: 'https://example.com',
-    error: 'Invalid profile picture url typebox',
-  }),
+  profile_picture: t.Optional(
+    t.File({ error: 'Invalid profile_picture file format' })
+  ),
 });
 export type CreatePatientDTO = Static<typeof createPatientDTO>;
 

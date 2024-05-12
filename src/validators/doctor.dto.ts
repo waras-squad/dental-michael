@@ -16,10 +16,9 @@ export const createDoctorDTO = t.Object({
     error: "Gender must be either 'MALE' or 'FEMALE'",
     description: "'MALE' or 'FEMALE'",
   }),
-  phone: t.String({
-    pattern: '^d+$',
+  phone: t.RegExp('^(\\+62|62|0)8[1-9][0-9]{6,9}$', {
+    error: 'Phone must be indonesian format',
     minLength: 9,
-    error: 'Phone must be a number, minimum 9 digit',
   }),
   dob: t.String({
     format: 'date',

@@ -24,6 +24,7 @@ import {
   isNull,
 } from 'drizzle-orm';
 import { omit } from '../helpers/index';
+import { uploadFiles } from '@/utils';
 
 export class PatientService {
   static async getList(query: GetPatientListFilterDTO) {
@@ -83,7 +84,12 @@ export class PatientService {
   }
 
   static async create(payload: CreatePatientDTO, admin?: Admin) {
-    const { email, nik, gender, dob, name, profile_picture } = payload;
+    const { email, nik, gender, dob, name } = payload;
+
+    let profile_picture: string;
+    if (payload.profile_picture) {
+      profile_picture = (await uploadFiles([payload.profile_picture]))[0];
+    }
 
     const phone = formatPhone(payload.phone);
 
@@ -142,9 +148,14 @@ export class PatientService {
   }
 
   static async update(id: string, payload: EditPatientDTO, admin?: Admin) {
-    const { email, nik, gender, dob, name, profile_picture } = payload;
+    const { email, nik, gender, dob, name } = payload;
 
     const patient = await this.findPatientByIdOrThrowError(id);
+
+    let profile_picture: string;
+    if (payload.profile_picture) {
+      profile_picture = (await uploadFiles([payload.profile_picture]))[0];
+    }
 
     const phone = payload.phone ? formatPhone(payload?.phone) : undefined;
 
