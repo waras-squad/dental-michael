@@ -4,9 +4,10 @@ import { AccountActivity, AccountType } from '@/enum';
 import { customError, formatPhone, omit } from '@/helpers';
 import { CreateDoctorDTO } from '@/validators/doctor.dto';
 import { AccountActivityLogService } from './accountActivityLog.service';
-import { PostgresError } from '@/validators';
+import { ChangePasswordDTO, PostgresError } from '@/validators';
 import { CONSTRAINT_NAME, ERROR_MESSAGES, SUCCESS_MESSAGES } from '@/const';
 import { eq } from 'drizzle-orm';
+import { uploadFiles } from '@/utils';
 
 export class DoctorService {
   static async findDoctorById(id: string) {
@@ -27,6 +28,8 @@ export class DoctorService {
     return doctor;
   }
   static async create(payload: CreateDoctorDTO, admin: Admin) {
+    const [profile_picture] = await uploadFiles([payload.profile_picture]);
+
     const phone = formatPhone(payload.phone);
     const password = await Bun.password.hash(payload.password);
     console.log(payload);
@@ -41,6 +44,7 @@ export class DoctorService {
             phone,
             password,
             tax: payload.tax?.toString(),
+            profile_picture,
           })
           .returning({ id: doctors.id });
 
@@ -73,13 +77,54 @@ export class DoctorService {
     }
   }
 
+  static async changePassword(
+    id: string,
+    payload: ChangePasswordDTO,
+    admin?: Admin
+  ) {
+    const { old_password, new_password } = payload;
+
+    const doctor = await db.query.doctors.findFirst({
+      where({ id: user_id }, { eq }) {
+        return eq(user_id, id);
+      },
+    });
+
+    if (
+      !doctor ||
+      !(await Bun.password.verify(doctor.password, old_password))
+    ) {
+      return customError(403, ERROR_MESSAGES.WRONG_PASSWORD);
+    }
+
+    const password = await Bun.password.hash(new_password);
+
+    try {
+      await db.transaction(async (tx) => {
+        await tx.update(doctors).set({ password }).where(eq(doctors.id, id));
+
+        await AccountActivityLogService.insertToLog(tx, {
+          target_id: doctor.id,
+          actor_id: admin?.id || doctor.id,
+          action: AccountActivity.CHANGE_PASSWORD,
+          target_type: AccountType.USER,
+          actor_type: admin ? AccountType.ADMIN : AccountType.DOCTOR,
+          details: { activity: AccountActivity.CHANGE_PASSWORD },
+        });
+      });
+    } catch (error) {
+      console.error(error.message);
+      return customError(500, ERROR_MESSAGES.CHANGE_PASSWORD);
+    }
+  }
+
   static async delete(id: string, admin: Admin) {
     const doctor = await this.findDoctorById(id);
     if (!doctor) {
       return customError(404, ERROR_MESSAGES.NOT_FOUND('Doctor', id));
     }
 
-    if (doctor.deleted_at) {
+    if (!doctor.is_active) {
       return customError(409, ERROR_MESSAGES.ALREADY_DELETED('Doctor'));
     }
 
@@ -87,7 +132,7 @@ export class DoctorService {
       await db.transaction(async (tx) => {
         await tx
           .update(doctors)
-          .set({ deleted_at: new Date(), is_active: false })
+          .set({ is_active: false })
           .where(eq(doctors.id, id));
 
         await AccountActivityLogService.insertToLog(tx, {
@@ -113,7 +158,7 @@ export class DoctorService {
       return customError(404, ERROR_MESSAGES.NOT_FOUND('Doctor', id));
     }
 
-    if (!doctor.deleted_at) {
+    if (doctor.is_active) {
       return customError(409, ERROR_MESSAGES.ALREADY_ACTIVE('Doctor', id));
     }
 
@@ -121,7 +166,7 @@ export class DoctorService {
       await db.transaction(async (tx) => {
         await tx
           .update(doctors)
-          .set({ deleted_at: null, is_active: true })
+          .set({ is_active: true })
           .where(eq(doctors.id, id));
 
         await AccountActivityLogService.insertToLog(tx, {

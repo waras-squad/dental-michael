@@ -27,14 +27,14 @@ export const createDoctorDTO = t.Object({
   }),
   address: t.String(),
   nik: t.Optional(
-    t.RegExp('^d{16}$', {
+    t.RegExp('^\\d{16}$', {
       error: 'Invalid NIK',
       examples: '3174043101963456',
       description: '16 digit NIK',
     })
   ),
-  // profile_picture: t.Union(t.String(), t.Null()),
-  tax: t.Optional(t.Number({})),
+  profile_picture: t.File({ error: 'Profile picture must be image' }),
+  tax: t.Optional(t.Numeric({ error: 'Invalid tax format' })),
   is_active: t.Optional(t.Boolean()),
 });
 export type CreateDoctorDTO = Static<typeof createDoctorDTO>;

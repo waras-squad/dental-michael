@@ -1,3 +1,5 @@
+import { Static, t } from 'elysia';
+
 export type PostgresError = {
   name: string;
   severity_local: string;
@@ -12,3 +14,9 @@ export type PostgresError = {
   originalColumn: number;
   routine: string;
 };
+
+export const changePasswordDTO = t.Object({
+  old_password: t.String({ minLength: 5 }),
+  new_password: t.String({ minLength: 5 }),
+});
+export type ChangePasswordDTO = Static<typeof changePasswordDTO>;

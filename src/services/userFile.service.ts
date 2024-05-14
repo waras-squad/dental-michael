@@ -37,7 +37,7 @@ export class UserFileService {
         }
       });
       console.log(SUCCESS_MESSAGES.UPLOAD_FILES(user_id));
-      return paths;
+      return { paths };
     } catch (error) {
       console.error(error.message);
       return customError(500, ERROR_MESSAGES.UPLOAD_FILE);

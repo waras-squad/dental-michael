@@ -39,7 +39,6 @@ export const doctors = pgTable('doctors', {
   is_active: boolean('is_active').default(true),
   created_at: timestamp('created_at').defaultNow(),
   updated_at: timestamp('updated_at').$onUpdateFn(() => new Date()),
-  deleted_at: timestamp('deleted_at'),
 });
 
 export const doctorRelations = relations(doctors, ({ many }) => ({

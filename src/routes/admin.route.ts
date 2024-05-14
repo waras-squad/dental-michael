@@ -17,11 +17,14 @@ import { getAllPatientFilterSwaggerParameter } from '@/utils';
 import { createDoctorDTO } from '@/validators/doctor.dto';
 import { DoctorService } from '@/services/doctor.service';
 
+const generalModels = new Elysia({ name: 'Model.General' }).model({
+  'Change-password': changePasswordDTO,
+});
+
 const patientModels = new Elysia({ name: 'Model.Admin.Patient' }).model({
   'Get-patient-filter': getPatientListFilterDTO,
   'Create-patient': createPatientDTO,
   'Update-patient': editPatientDTO,
-  'Change-patient-password': changePasswordDTO,
   'Upload-patient-file': uploadUserFileDTO,
 });
 
@@ -40,6 +43,7 @@ export const adminRoutes = new Elysia({
   },
 })
   .use(authMiddleware(JwtName.ADMIN))
+  .use(generalModels)
   .group(
     '/patients',
     {
@@ -121,7 +125,7 @@ export const adminRoutes = new Elysia({
             return await PatientService.changePassword(uuid, body, admin);
           },
           {
-            body: 'Change-patient-password',
+            body: 'Change-password',
             detail: {
               summary: 'Change patient password',
             },
@@ -192,6 +196,19 @@ export const adminRoutes = new Elysia({
           {
             detail: {
               summary: 'Soft delete / deactivate doctor',
+            },
+          }
+        )
+        .patch(
+          '/:uuid/password',
+          async ({ params: { uuid }, body, admin }) => {
+            if (admin)
+              return await DoctorService.changePassword(uuid, body, admin);
+          },
+          {
+            body: 'Change-password',
+            detail: {
+              summary: 'Reactivate a doctor',
             },
           }
         )

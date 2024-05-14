@@ -69,12 +69,6 @@ export type CreatePatientDTO = Static<typeof createPatientDTO>;
 export const editPatientDTO = t.Partial(createPatientDTO);
 export type EditPatientDTO = Static<typeof editPatientDTO>;
 
-export const changePasswordDTO = t.Object({
-  old_password: t.String({ minLength: 5 }),
-  new_password: t.String({ minLength: 5 }),
-});
-export type ChangePasswordDTO = Static<typeof changePasswordDTO>;
-
 export const uploadUserFileDTO = t.Object({
   files: t.Files(),
   type: t.Optional(t.String({ minLength: 1 })),
