@@ -19,7 +19,7 @@ export class AccountActivityLogService {
       action: AccountActivity;
       target_type: AccountType;
       actor_type: AccountType;
-      details: Object;
+      details: Record<string, unknown>;
     }
   ) {
     await tx.insert(accountActivityLogs).values(payload);
