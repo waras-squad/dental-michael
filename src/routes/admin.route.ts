@@ -14,7 +14,7 @@ import { PatientService } from '@/services';
 import { authMiddleware } from '@/middlewares';
 import { UserFileService } from '@/services/userFile.service';
 import { getAllPatientFilterSwaggerParameter } from '@/utils';
-import { createDoctorDTO } from '@/validators/doctor.dto';
+import { createDoctorDTO, updateDoctorDTO } from '@/validators/doctor.dto';
 import { DoctorService } from '@/services/doctor.service';
 
 const generalModels = new Elysia({ name: 'Model.General' }).model({
@@ -30,6 +30,7 @@ const patientModels = new Elysia({ name: 'Model.Admin.Patient' }).model({
 
 const doctorModels = new Elysia({ name: 'Mode.Admin.Doctor' }).model({
   'Create-doctor': createDoctorDTO,
+  'Update-doctor': updateDoctorDTO,
 });
 
 const adminModels = new Elysia({ name: 'Model.Admin.Admin' }).model({
@@ -188,6 +189,18 @@ export const adminRoutes = new Elysia({
             },
           }
         )
+        .put(
+          '/:uuid',
+          async ({ params: { uuid }, body, admin }) => {
+            if (admin) return await DoctorService.update(uuid, body, admin);
+          },
+          {
+            body: 'Update-doctor',
+            detail: {
+              summary: 'Edit existing doctor',
+            },
+          }
+        )
         .delete(
           '/:uuid',
           async ({ params: { uuid }, admin }) => {
@@ -208,7 +221,7 @@ export const adminRoutes = new Elysia({
           {
             body: 'Change-password',
             detail: {
-              summary: 'Reactivate a doctor',
+              summary: "Change a doctor's password",
             },
           }
         )

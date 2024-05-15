@@ -38,3 +38,14 @@ export const createDoctorDTO = t.Object({
   is_active: t.Optional(t.Boolean()),
 });
 export type CreateDoctorDTO = Static<typeof createDoctorDTO>;
+
+export const updateDoctorDTO = t.Partial(
+  t.Composite([
+    t.Omit(createDoctorDTO, ['password', 'is_active', 'profile_picture']),
+    t.Object({
+      profile_picture: t.Union([t.File(), t.String()]),
+    }),
+  ])
+);
+
+export type UpdateDoctorDTO = Static<typeof updateDoctorDTO>;

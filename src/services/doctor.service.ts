@@ -2,7 +2,7 @@ import { db } from '@/db';
 import { Admin, doctors } from '@/db/schemas';
 import { AccountActivity, AccountType } from '@/enum';
 import { customError, formatPhone, omit } from '@/helpers';
-import { CreateDoctorDTO } from '@/validators/doctor.dto';
+import { CreateDoctorDTO, UpdateDoctorDTO } from '@/validators/doctor.dto';
 import { AccountActivityLogService } from './accountActivityLog.service';
 import { ChangePasswordDTO, PostgresError } from '@/validators';
 import { CONSTRAINT_NAME, ERROR_MESSAGES, SUCCESS_MESSAGES } from '@/const';
@@ -33,7 +33,6 @@ export class DoctorService {
     const phone = formatPhone(payload.phone);
     const password = await Bun.password.hash(payload.password);
     console.log(payload);
-    doctors.tax;
 
     try {
       await db.transaction(async (tx) => {
@@ -183,6 +182,58 @@ export class DoctorService {
     } catch (error) {
       console.error(error.message);
       return customError(500, ERROR_MESSAGES.REACTIVATE_ENTITY('Doctor', id));
+    }
+  }
+
+  static async update(id: string, payload: UpdateDoctorDTO, admin: Admin) {
+    const doctor = await this.findDoctorById(id);
+    if (!doctor) {
+      return customError(404, ERROR_MESSAGES.NOT_FOUND('Doctor', id));
+    }
+
+    //? Only update if payload.profile_picture is a file
+    const profile_picture = !payload.profile_picture
+      ? undefined
+      : typeof payload.profile_picture === 'string'
+      ? undefined
+      : (await uploadFiles([payload.profile_picture]))[0];
+
+    try {
+      await db.transaction(async (tx) => {
+        await tx
+          .update(doctors)
+          .set({
+            ...payload,
+            profile_picture,
+            tax: payload.tax?.toString() || undefined,
+          })
+          .where(eq(doctors.id, id));
+
+        await AccountActivityLogService.insertToLog(tx, {
+          target_id: doctor.id,
+          target_type: AccountType.DOCTOR,
+          actor_id: admin.id,
+          actor_type: AccountType.ADMIN,
+          action: AccountActivity.UPDATE,
+          details: payload,
+        });
+
+        return SUCCESS_MESSAGES.UPDATE_ENTITY('Doctor', id);
+      });
+    } catch (error) {
+      const constraint = (error as PostgresError).constraint_name;
+      switch (constraint) {
+        case CONSTRAINT_NAME.DOCTOR.PHONE:
+          return customError(409, ERROR_MESSAGES.DUPLICATE.PHONE);
+        case CONSTRAINT_NAME.DOCTOR.EMAIL:
+          return customError(409, ERROR_MESSAGES.DUPLICATE.EMAIL);
+        case CONSTRAINT_NAME.DOCTOR.NIK:
+          return customError(409, ERROR_MESSAGES.DUPLICATE.NIK);
+        case CONSTRAINT_NAME.DOCTOR.USERNAME:
+          return customError(409, ERROR_MESSAGES.DUPLICATE.USERNAME);
+      }
+
+      return customError(500, ERROR_MESSAGES.UPDATE_ENTITY('Doctor', id));
     }
   }
 }
