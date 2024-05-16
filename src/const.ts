@@ -1324,6 +1324,10 @@ export const SUCCESS_MESSAGES = {
   UPLOAD_FILES: (uuid: string) => `Successfully upload files for user ${uuid}`,
   REACTIVATE_ENTITY: (entity: string, id: string | number) =>
     `Successfully reactivated ${entity} with id ${id}`,
+  MODIFY_DOCTOR_BACKGROUND: (
+    background: 'academics' | 'experiences' | 'certifications' | 'achievements',
+    doctor_id: string
+  ) => `Successfully modify ${background} for doctor ${doctor_id}`,
 };
 
 export const ERROR_MESSAGES = {
@@ -1349,6 +1353,10 @@ export const ERROR_MESSAGES = {
   UPLOAD_FILE: 'Failed to upload files',
   FORBIDDEN: 'You are not authorized to perform this action',
   WRONG_PASSWORD: 'Wrong password',
+  MODIFY_DOCTOR_BACKGROUND: (
+    background: 'academics' | 'experiences' | 'certifications' | 'achievements',
+    doctor_id: string
+  ) => `Failed to update ${background} for doctor with id ${doctor_id}`,
 };
 
 export const CONSTRAINT_NAME = {

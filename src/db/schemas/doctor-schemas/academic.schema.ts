@@ -8,7 +8,6 @@ import {
 } from 'drizzle-orm/pg-core';
 import { doctors } from './doctor.schema';
 import { InferSelectModel, relations } from 'drizzle-orm';
-import { createInsertSchema } from 'drizzle-typebox';
 
 export const academics = pgTable('academics', {
   id: serial('id').primaryKey(),
@@ -29,4 +28,3 @@ export const academicRelations = relations(academics, ({ one }) => ({
 }));
 
 export type Academic = InferSelectModel<typeof academics>;
-export const fullCreateAcademicDTO = createInsertSchema(academics);

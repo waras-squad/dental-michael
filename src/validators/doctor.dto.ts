@@ -1,3 +1,9 @@
+import {
+  academics,
+  achievements,
+  certificates,
+  experiences,
+} from '@/db/schemas';
 import { Gender } from '@/enum';
 import { Static, t } from 'elysia';
 
@@ -47,5 +53,79 @@ export const updateDoctorDTO = t.Partial(
     }),
   ])
 );
-
 export type UpdateDoctorDTO = Static<typeof updateDoctorDTO>;
+
+export const academicDTO = t.Array(
+  t.Object({
+    id: t.Optional(t.Number()),
+    degree_title: t.String(),
+    institution: t.String(),
+    year: t.Number(),
+  })
+);
+
+export type AcademicDTO = Static<typeof academicDTO>;
+
+export const experienceDTO = t.Array(
+  t.Object({
+    id: t.Optional(t.Number()),
+    title: t.String(),
+    company: t.String(),
+    description: t.Optional(t.String()),
+    start_date: t.String({
+      format: 'date',
+      examples: '2000-01-01',
+      error: 'Start date should be yyyy-MM-dd format',
+    }),
+    end_date: t.String({
+      format: 'date',
+      examples: '2000-01-01',
+      error: 'End date should be yyyy-MM-dd format',
+    }),
+    is_current: t.Optional(t.Boolean({ default: false })),
+  })
+);
+
+export type ExperiencesDTO = Static<typeof experienceDTO>;
+
+export const certificateDTO = t.Array(
+  t.Object({
+    id: t.Optional(t.Number()),
+    title: t.String(),
+    issuer: t.String(),
+    year_obtained: t.Number(),
+  })
+);
+
+export type CertificationsDTO = Static<typeof certificateDTO>;
+
+export const achievementDTO = t.Array(
+  t.Object({
+    id: t.Optional(t.Number()),
+    title: t.String(),
+    description: t.String(),
+    year: t.Number(),
+  })
+);
+
+export type AchievementDTO = Static<typeof achievementDTO>;
+
+export enum BackgroundTypeKey {
+  ACADEMIC = 'academics',
+  EXPERIENCE = 'experiences',
+  CERTIFICATION = 'certifications',
+  ACHIEVEMENT = 'achievements',
+}
+export type BackgroundType = {
+  academics: AcademicDTO;
+  experiences: ExperiencesDTO;
+  certifications: CertificationsDTO;
+  achievements: AchievementDTO;
+};
+
+export const backgroundSchemaMap = {
+  academics: academics,
+  experiences: experiences,
+  certifications: certificates,
+  achievements: achievements,
+};

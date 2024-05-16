@@ -14,7 +14,15 @@ import { PatientService } from '@/services';
 import { authMiddleware } from '@/middlewares';
 import { UserFileService } from '@/services/userFile.service';
 import { getAllPatientFilterSwaggerParameter } from '@/utils';
-import { createDoctorDTO, updateDoctorDTO } from '@/validators/doctor.dto';
+import {
+  BackgroundTypeKey,
+  academicDTO,
+  achievementDTO,
+  certificateDTO,
+  createDoctorDTO,
+  experienceDTO,
+  updateDoctorDTO,
+} from '@/validators/doctor.dto';
 import { DoctorService } from '@/services/doctor.service';
 
 const generalModels = new Elysia({ name: 'Model.General' }).model({
@@ -31,6 +39,10 @@ const patientModels = new Elysia({ name: 'Model.Admin.Patient' }).model({
 const doctorModels = new Elysia({ name: 'Mode.Admin.Doctor' }).model({
   'Create-doctor': createDoctorDTO,
   'Update-doctor': updateDoctorDTO,
+  'Modify-academic': academicDTO,
+  'Modify-experience': experienceDTO,
+  'Modify-certificate': certificateDTO,
+  'Modify-achievement': achievementDTO,
 });
 
 const adminModels = new Elysia({ name: 'Model.Admin.Admin' }).model({
@@ -199,6 +211,86 @@ export const adminRoutes = new Elysia({
             detail: {
               summary: 'Edit existing doctor',
             },
+          }
+        )
+        .put(
+          `/:uuid/${BackgroundTypeKey.ACADEMIC}`,
+          async ({ params: { uuid }, body, admin }) => {
+            if (admin)
+              return await DoctorService.createOrUpdateBackground(
+                uuid,
+                BackgroundTypeKey.ACADEMIC,
+                body,
+                admin
+              );
+          },
+          {
+            detail: {
+              summary: 'Create or update doctor academics',
+              description:
+                'if id is provided, it will be editted, otherwise it will be created',
+            },
+            body: 'Modify-academic',
+          }
+        )
+        .put(
+          `/:uuid/${BackgroundTypeKey.ACHIEVEMENT}`,
+          async ({ params: { uuid }, body, admin }) => {
+            if (admin)
+              return await DoctorService.createOrUpdateBackground(
+                uuid,
+                BackgroundTypeKey.ACHIEVEMENT,
+                body,
+                admin
+              );
+          },
+          {
+            detail: {
+              summary: 'Create or update doctor achievements',
+              description:
+                'if id is provided, it will be editted, otherwise it will be created',
+            },
+            body: 'Modify-achievement',
+          }
+        )
+        .put(
+          `/:uuid/${BackgroundTypeKey.CERTIFICATION}`,
+          async ({ params: { uuid }, body, admin }) => {
+            if (admin)
+              return await DoctorService.createOrUpdateBackground(
+                uuid,
+                BackgroundTypeKey.CERTIFICATION,
+                body,
+                admin
+              );
+          },
+          {
+            detail: {
+              summary: 'Create or update doctor certifications',
+              description:
+                'if id is provided, it will be editted, otherwise it will be created',
+            },
+            body: 'Modify-certificate',
+          }
+        )
+        .put(
+          `/:uuid/${BackgroundTypeKey.EXPERIENCE}`,
+          async ({ params: { uuid }, body, admin }) => {
+            if (admin)
+              return await DoctorService.createOrUpdateBackground(
+                uuid,
+                BackgroundTypeKey.EXPERIENCE,
+                body,
+                admin
+              );
+          },
+          {
+            detail: {
+              summary: 'Create or update doctor experiences',
+              description:
+                'if id is provided, it will be editted, otherwise it will be created',
+            },
+            body: 'Modify-experience',
           }
         )
         .delete(

@@ -1,12 +1,25 @@
 import { db } from '@/db';
-import { Admin, doctors } from '@/db/schemas';
+import {
+  Admin,
+  academics,
+  achievements,
+  certificates,
+  doctors,
+  experiences,
+} from '@/db/schemas';
 import { AccountActivity, AccountType } from '@/enum';
 import { customError, formatPhone, omit } from '@/helpers';
-import { CreateDoctorDTO, UpdateDoctorDTO } from '@/validators/doctor.dto';
+import {
+  AcademicDTO,
+  BackgroundType,
+  CreateDoctorDTO,
+  UpdateDoctorDTO,
+  backgroundSchemaMap,
+} from '@/validators/doctor.dto';
 import { AccountActivityLogService } from './accountActivityLog.service';
 import { ChangePasswordDTO, PostgresError } from '@/validators';
 import { CONSTRAINT_NAME, ERROR_MESSAGES, SUCCESS_MESSAGES } from '@/const';
-import { eq } from 'drizzle-orm';
+import { and, eq, notInArray } from 'drizzle-orm';
 import { uploadFiles } from '@/utils';
 
 export class DoctorService {
@@ -27,6 +40,20 @@ export class DoctorService {
     });
     return doctor;
   }
+
+  static async checkDoctorExist(id: string) {
+    const doctor = await db.query.doctors.findFirst({
+      where({ id: doctor_id }, { eq }) {
+        return eq(doctor_id, id);
+      },
+    });
+
+    if (!doctor) {
+      return customError(404, ERROR_MESSAGES.NOT_FOUND('Doctor', id));
+    }
+    return doctor;
+  }
+
   static async create(payload: CreateDoctorDTO, admin: Admin) {
     const [profile_picture] = await uploadFiles([payload.profile_picture]);
 
@@ -84,8 +111,8 @@ export class DoctorService {
     const { old_password, new_password } = payload;
 
     const doctor = await db.query.doctors.findFirst({
-      where({ id: user_id }, { eq }) {
-        return eq(user_id, id);
+      where({ id: doctor_id }, { eq }) {
+        return eq(doctor_id, id);
       },
     });
 
@@ -118,10 +145,7 @@ export class DoctorService {
   }
 
   static async delete(id: string, admin: Admin) {
-    const doctor = await this.findDoctorById(id);
-    if (!doctor) {
-      return customError(404, ERROR_MESSAGES.NOT_FOUND('Doctor', id));
-    }
+    const doctor = await this.checkDoctorExist(id);
 
     if (!doctor.is_active) {
       return customError(409, ERROR_MESSAGES.ALREADY_DELETED('Doctor'));
@@ -152,10 +176,7 @@ export class DoctorService {
   }
 
   static async reactivate(id: string, admin: Admin) {
-    const doctor = await this.findDoctorById(id);
-    if (!doctor) {
-      return customError(404, ERROR_MESSAGES.NOT_FOUND('Doctor', id));
-    }
+    const doctor = await this.checkDoctorExist(id);
 
     if (doctor.is_active) {
       return customError(409, ERROR_MESSAGES.ALREADY_ACTIVE('Doctor', id));
@@ -186,10 +207,7 @@ export class DoctorService {
   }
 
   static async update(id: string, payload: UpdateDoctorDTO, admin: Admin) {
-    const doctor = await this.findDoctorById(id);
-    if (!doctor) {
-      return customError(404, ERROR_MESSAGES.NOT_FOUND('Doctor', id));
-    }
+    const doctor = await this.checkDoctorExist(id);
 
     //? Only update if payload.profile_picture is a file
     const profile_picture = !payload.profile_picture
@@ -234,6 +252,67 @@ export class DoctorService {
       }
 
       return customError(500, ERROR_MESSAGES.UPDATE_ENTITY('Doctor', id));
+    }
+  }
+
+  /**
+   * Function to create or update background for a doctor.
+   * If id is provided, it will be updated, otherwise it will be created.
+   * The rest will be deleted
+   */
+  static async createOrUpdateBackground(
+    doctor_id: string,
+    backgroundType: keyof BackgroundType,
+    payloads: BackgroundType[keyof BackgroundType],
+    admin?: Admin
+  ) {
+    const doctor = await this.checkDoctorExist(doctor_id);
+    const background = backgroundSchemaMap[backgroundType];
+
+    try {
+      await db.transaction(async (tx) => {
+        const ids: number[] = [];
+        for (const data of payloads) {
+          const [returnedBackground] = await tx
+            .insert(background)
+            .values({ doctor_id, ...data })
+            .onConflictDoUpdate({ target: background.id, set: { ...data } })
+            .returning({
+              id: background.id,
+            });
+
+          await AccountActivityLogService.insertToLog(tx, {
+            target_id: doctor.id,
+            target_type: AccountType.DOCTOR,
+            actor_id: admin?.id ?? doctor.id,
+            actor_type: admin ? AccountType.ADMIN : AccountType.DOCTOR,
+            action: AccountActivity.MODIFY_ACADEMIC,
+            details: data,
+          });
+
+          ids.push(returnedBackground.id);
+        }
+
+        await tx
+          .delete(background)
+          .where(
+            and(
+              eq(background.doctor_id, doctor_id),
+              notInArray(background.id, ids)
+            )
+          );
+      });
+
+      return SUCCESS_MESSAGES.MODIFY_DOCTOR_BACKGROUND(
+        backgroundType,
+        doctor_id
+      );
+    } catch (error) {
+      console.error(error);
+      return customError(
+        500,
+        ERROR_MESSAGES.MODIFY_DOCTOR_BACKGROUND(backgroundType, doctor_id)
+      );
     }
   }
 }
