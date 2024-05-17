@@ -1,9 +1,3 @@
-import {
-  academics,
-  achievements,
-  certificates,
-  experiences,
-} from '@/db/schemas';
 import { Gender } from '@/enum';
 import { Static, t } from 'elysia';
 
@@ -123,9 +117,15 @@ export type BackgroundType = {
   achievements: AchievementDTO;
 };
 
-export const backgroundSchemaMap = {
-  academics: academics,
-  experiences: experiences,
-  certifications: certificates,
-  achievements: achievements,
-};
+export const doctorScheduleDTO = t.Array(
+  t.Object({
+    id: t.Number(),
+    start_at: t.String(),
+    end_at: t.String(),
+    is_close: t.Optional(t.Boolean({ default: false })),
+  }),
+  {
+    maxItems: 7,
+  }
+);
+export type DoctorScheduleDTO = Static<typeof doctorScheduleDTO>;

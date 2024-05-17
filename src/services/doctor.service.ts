@@ -4,25 +4,34 @@ import {
   academics,
   achievements,
   certificates,
+  doctorSchedules,
   doctors,
   experiences,
 } from '@/db/schemas';
 import { AccountActivity, AccountType } from '@/enum';
-import { customError, formatPhone, omit } from '@/helpers';
-import {
-  AcademicDTO,
-  BackgroundType,
-  CreateDoctorDTO,
-  UpdateDoctorDTO,
-  backgroundSchemaMap,
-} from '@/validators/doctor.dto';
+import { customError, formatPhone, omit, validateTime } from '@/helpers';
 import { AccountActivityLogService } from './accountActivityLog.service';
-import { ChangePasswordDTO, PostgresError } from '@/validators';
+import {
+  BackgroundType,
+  ChangePasswordDTO,
+  CreateDoctorDTO,
+  DoctorScheduleDTO,
+  PostgresError,
+  UpdateDoctorDTO,
+} from '@/validators';
+
 import { CONSTRAINT_NAME, ERROR_MESSAGES, SUCCESS_MESSAGES } from '@/const';
-import { and, eq, notInArray } from 'drizzle-orm';
 import { uploadFiles } from '@/utils';
 
+import { and, eq, inArray, notInArray } from 'drizzle-orm';
+
 export class DoctorService {
+  static backgroundSchemaMap = {
+    academics: academics,
+    experiences: experiences,
+    certifications: certificates,
+    achievements: achievements,
+  };
   static async findDoctorById(id: string) {
     const doctor = await db.query.doctors.findFirst({
       columns: {
@@ -59,7 +68,6 @@ export class DoctorService {
 
     const phone = formatPhone(payload.phone);
     const password = await Bun.password.hash(payload.password);
-    console.log(payload);
 
     try {
       await db.transaction(async (tx) => {
@@ -73,6 +81,15 @@ export class DoctorService {
             profile_picture,
           })
           .returning({ id: doctors.id });
+
+        for (let i = 0; i < 7; i++) {
+          await tx.insert(doctorSchedules).values({
+            day_of_week: i,
+            start_at: '07:00',
+            end_at: '20:00',
+            doctor_id: doctor.id,
+          });
+        }
 
         await AccountActivityLogService.insertToLog(tx, {
           target_id: doctor.id,
@@ -267,7 +284,7 @@ export class DoctorService {
     admin?: Admin
   ) {
     const doctor = await this.checkDoctorExist(doctor_id);
-    const background = backgroundSchemaMap[backgroundType];
+    const background = this.backgroundSchemaMap[backgroundType];
 
     try {
       await db.transaction(async (tx) => {
@@ -312,6 +329,75 @@ export class DoctorService {
       return customError(
         500,
         ERROR_MESSAGES.MODIFY_DOCTOR_BACKGROUND(backgroundType, doctor_id)
+      );
+    }
+  }
+
+  static async updateSchedules(
+    doctor_id: string,
+    payloads: DoctorScheduleDTO,
+    admin?: Admin
+  ) {
+    await this.checkDoctorExist(doctor_id);
+
+    for (const p of payloads) {
+      if (!validateTime(p.start_at) || !validateTime(p.end_at)) {
+        return customError(422, ERROR_MESSAGES.INVALID_TIME('HH:mm'));
+      }
+    }
+
+    const schedules = await db.query.doctorSchedules.findMany({
+      where: and(
+        eq(doctorSchedules.doctor_id, doctor_id),
+        inArray(
+          doctorSchedules.id,
+          payloads.map((s) => s.id)
+        )
+      ),
+    });
+
+    if (schedules.length !== payloads.length) {
+      const unavailableIds: number[] = [];
+      for (const p of payloads) {
+        if (!schedules.find((s) => s.id === p.id)) {
+          unavailableIds.push(p.id);
+        }
+      }
+
+      return customError(
+        400,
+        ERROR_MESSAGES.NOT_FOUND('Schedule', unavailableIds.join(', '))
+      );
+    }
+
+    try {
+      await db.transaction(async (tx) => {
+        for (const p of payloads) {
+          await tx
+            .update(doctorSchedules)
+            .set({ ...omit(p, ['id']) })
+            .where(and(eq(doctorSchedules.id, p.id)));
+        }
+
+        await AccountActivityLogService.insertToLog(tx, {
+          target_id: doctor_id,
+          target_type: AccountType.DOCTOR,
+          actor_id: admin?.id ?? doctor_id,
+          actor_type: admin ? AccountType.ADMIN : AccountType.DOCTOR,
+          action: AccountActivity.MODIFY_SCHEDULE,
+          details: payloads.reduce((acc, { id, ...properties }) => {
+            acc[id] = properties;
+            return acc;
+          }, {} as Record<number, unknown>),
+        });
+      });
+
+      return SUCCESS_MESSAGES.MODIFY_DOCTOR_SCHEDULES(doctor_id);
+    } catch (error) {
+      console.error(error);
+      return customError(
+        500,
+        ERROR_MESSAGES.MODITY_DOCTOR_SCHEDULES(doctor_id)
       );
     }
   }

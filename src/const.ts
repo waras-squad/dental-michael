@@ -1328,6 +1328,8 @@ export const SUCCESS_MESSAGES = {
     background: 'academics' | 'experiences' | 'certifications' | 'achievements',
     doctor_id: string
   ) => `Successfully modify ${background} for doctor ${doctor_id}`,
+  MODIFY_DOCTOR_SCHEDULES: (doctor_id: string) =>
+    `Successfully modify schedules for doctor ${doctor_id}`,
 };
 
 export const ERROR_MESSAGES = {
@@ -1357,6 +1359,9 @@ export const ERROR_MESSAGES = {
     background: 'academics' | 'experiences' | 'certifications' | 'achievements',
     doctor_id: string
   ) => `Failed to update ${background} for doctor with id ${doctor_id}`,
+  MODITY_DOCTOR_SCHEDULES: (doctor_id: string) =>
+    `Failed to update schedules for doctor with id ${doctor_id}`,
+  INVALID_TIME: (format: string) => `time format should be ${format}`,
 };
 
 export const CONSTRAINT_NAME = {

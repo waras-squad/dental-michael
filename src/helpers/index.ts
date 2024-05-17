@@ -1,4 +1,5 @@
-import { error, t } from 'elysia';
+import { error } from 'elysia';
+import { DateTime } from 'ts-luxon';
 
 // Takes an enum and return an array with each values
 export function enumToPgEnum(
@@ -38,4 +39,8 @@ export const omit = <T extends Record<string, unknown>>(
   }
 
   return clone;
+};
+
+export const validateTime = (time: string) => {
+  return DateTime.fromFormat(time, 'HH:mm').isValid;
 };

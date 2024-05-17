@@ -1,29 +1,31 @@
 import Elysia from 'elysia';
 
-import { AdminService } from '@/services';
 import {
-  changePasswordDTO,
-  createAdminDTO,
-  createPatientDTO,
-  editPatientDTO,
-  getPatientListFilterDTO,
-  uploadUserFileDTO,
-} from '@/validators';
-import { JwtName } from '@/enum';
-import { PatientService } from '@/services';
-import { authMiddleware } from '@/middlewares';
-import { UserFileService } from '@/services/userFile.service';
-import { getAllPatientFilterSwaggerParameter } from '@/utils';
+  AdminService,
+  DoctorService,
+  PatientService,
+  UserFileService,
+} from '@/services';
+
 import {
   BackgroundTypeKey,
   academicDTO,
   achievementDTO,
   certificateDTO,
+  changePasswordDTO,
+  createAdminDTO,
   createDoctorDTO,
+  createPatientDTO,
+  doctorScheduleDTO,
+  editPatientDTO,
   experienceDTO,
+  getPatientListFilterDTO,
   updateDoctorDTO,
-} from '@/validators/doctor.dto';
-import { DoctorService } from '@/services/doctor.service';
+  uploadUserFileDTO,
+} from '@/validators';
+import { JwtName } from '@/enum';
+import { authMiddleware } from '@/middlewares';
+import { getAllPatientFilterSwaggerParameter } from '@/utils';
 
 const generalModels = new Elysia({ name: 'Model.General' }).model({
   'Change-password': changePasswordDTO,
@@ -43,6 +45,7 @@ const doctorModels = new Elysia({ name: 'Mode.Admin.Doctor' }).model({
   'Modify-experience': experienceDTO,
   'Modify-certificate': certificateDTO,
   'Modify-achievement': achievementDTO,
+  'Modify-schedule': doctorScheduleDTO,
 });
 
 const adminModels = new Elysia({ name: 'Model.Admin.Admin' }).model({
@@ -291,6 +294,20 @@ export const adminRoutes = new Elysia({
                 'if id is provided, it will be editted, otherwise it will be created',
             },
             body: 'Modify-experience',
+          }
+        )
+        .put(
+          '/:uuid/schedules',
+          ({ params: { uuid }, body, admin }) => {
+            if (admin) return DoctorService.updateSchedules(uuid, body, admin);
+          },
+          {
+            detail: {
+              summary: 'Modify doctor schedules',
+              description:
+                'The schedules will be updated by id, and time format should be HH:mm',
+            },
+            body: 'Modify-schedule',
           }
         )
         .delete(
