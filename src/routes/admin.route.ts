@@ -20,6 +20,7 @@ import {
   editPatientDTO,
   experienceDTO,
   getPatientListFilterDTO,
+  doctorTreatmentDTO,
   updateDoctorDTO,
   uploadUserFileDTO,
 } from '@/validators';
@@ -46,6 +47,7 @@ const doctorModels = new Elysia({ name: 'Mode.Admin.Doctor' }).model({
   'Modify-certificate': certificateDTO,
   'Modify-achievement': achievementDTO,
   'Modify-schedule': doctorScheduleDTO,
+  'Modify-treatment': doctorTreatmentDTO,
 });
 
 const adminModels = new Elysia({ name: 'Model.Admin.Admin' }).model({
@@ -291,7 +293,7 @@ export const adminRoutes = new Elysia({
             detail: {
               summary: 'Create or update doctor experiences',
               description:
-                'if id is provided, it will be editted, otherwise it will be created',
+                'if id is provided, it will be editted, otherwise it will be created, the exsiting will be deleted',
             },
             body: 'Modify-experience',
           }
@@ -308,6 +310,20 @@ export const adminRoutes = new Elysia({
                 'The schedules will be updated by id, and time format should be HH:mm',
             },
             body: 'Modify-schedule',
+          }
+        )
+        .put(
+          '/:uuid/treatments',
+          ({ params: { uuid }, body, admin }) => {
+            if (admin) return DoctorService.modifyTreatments(uuid, body, admin);
+          },
+          {
+            detail: {
+              summary: 'Modify doctor treatments',
+              description:
+                'if ID is provided, it will be edited, otherwise it will be created, the exsiting will be deleted',
+            },
+            body: 'Modify-treatment',
           }
         )
         .delete(

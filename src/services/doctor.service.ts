@@ -5,6 +5,7 @@ import {
   achievements,
   certificates,
   doctorSchedules,
+  doctorTreatments,
   doctors,
   experiences,
 } from '@/db/schemas';
@@ -17,7 +18,9 @@ import {
   CreateDoctorDTO,
   DoctorScheduleDTO,
   PostgresError,
+  DoctorTreatmentDTO,
   UpdateDoctorDTO,
+  ValidateLogin,
 } from '@/validators';
 
 import { CONSTRAINT_NAME, ERROR_MESSAGES, SUCCESS_MESSAGES } from '@/const';
@@ -61,6 +64,31 @@ export class DoctorService {
       return customError(404, ERROR_MESSAGES.NOT_FOUND('Doctor', id));
     }
     return doctor;
+  }
+
+  static async login(payload: ValidateLogin) {
+    const { username, password } = payload;
+
+    const doctor = await db.query.doctors.findFirst({
+      where: (doctor, { eq, or }) =>
+        or(eq(doctor.username, username), eq(doctor.email, username)),
+    });
+
+    if (!doctor || !(await Bun.password.verify(password, doctor.password))) {
+      return customError(401, ERROR_MESSAGES.INVALID_LOGIN);
+    }
+
+    if (!doctor.is_active) {
+      return customError(403, ERROR_MESSAGES.ACCOUNT_DEACTIVATED);
+    }
+
+    return {
+      id: doctor.id,
+      name: doctor.name,
+      email: doctor.email,
+      gender: doctor.gender,
+      dob: doctor.dob,
+    };
   }
 
   static async create(payload: CreateDoctorDTO, admin: Admin) {
@@ -392,13 +420,63 @@ export class DoctorService {
         });
       });
 
-      return SUCCESS_MESSAGES.MODIFY_DOCTOR_SCHEDULES(doctor_id);
+      return SUCCESS_MESSAGES.MODIFY_DOCTOR_SERVICE(doctor_id, 'schedules');
     } catch (error) {
       console.error(error);
       return customError(
         500,
-        ERROR_MESSAGES.MODITY_DOCTOR_SCHEDULES(doctor_id)
+        ERROR_MESSAGES.MODITY_DOCTOR_SERVICES(doctor_id, 'schedules')
       );
+    }
+  }
+
+  static async modifyTreatments(
+    doctor_id: string,
+    payloads: DoctorTreatmentDTO,
+    admin?: Admin
+  ) {
+    await this.checkDoctorExist(doctor_id);
+
+    try {
+      await db.transaction(async (tx) => {
+        const mentionedId: number[] = [];
+
+        for (const p of payloads) {
+          const [modifiedTreatment] = await tx
+            .insert(doctorTreatments)
+            .values({ doctor_id, ...p })
+            .onConflictDoUpdate({
+              target: doctorTreatments.id,
+              set: omit(p, ['id']),
+            })
+            .returning({ id: doctorTreatments.id });
+
+          mentionedId.push(modifiedTreatment.id);
+
+          await AccountActivityLogService.insertToLog(tx, {
+            target_id: doctor_id,
+            target_type: AccountType.DOCTOR,
+            actor_id: admin?.id ?? doctor_id,
+            actor_type: admin ? AccountType.ADMIN : AccountType.DOCTOR,
+            action: AccountActivity.MODIFY_TREATMENT,
+            details: p,
+          });
+        }
+
+        await tx
+          .delete(doctorTreatments)
+          .where(
+            and(
+              eq(doctorTreatments.doctor_id, doctor_id),
+              notInArray(doctorTreatments.id, mentionedId)
+            )
+          );
+      });
+
+      return SUCCESS_MESSAGES.MODIFY_DOCTOR_SERVICE(doctor_id, 'treatments');
+    } catch (error) {
+      console.error(error);
+      return ERROR_MESSAGES.MODITY_DOCTOR_SERVICES(doctor_id, 'treatments');
     }
   }
 }

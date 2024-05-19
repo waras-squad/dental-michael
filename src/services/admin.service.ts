@@ -1,9 +1,5 @@
 import { customError, omit } from '@/helpers';
-import {
-  CreateAdminDTO,
-  PostgresError,
-  ValidateAdminLogin,
-} from '@/validators';
+import { CreateAdminDTO, PostgresError, ValidateLogin } from '@/validators';
 import { db } from '@/db';
 import { Admin, admins } from '@/db/schemas';
 import { AccountActivityLogService } from './accountActivityLog.service';
@@ -27,7 +23,7 @@ export class AdminService {
     });
   }
 
-  static async login(payload: ValidateAdminLogin) {
+  static async login(payload: ValidateLogin) {
     const { username, password } = payload;
     const admin = await db.query.admins.findFirst({
       where: (admin, { eq }) => eq(admin.username, username),

@@ -1,12 +1,6 @@
 import { Gender } from '@/enum';
 import { Static, t } from 'elysia';
 
-export const validateDoctorLogin = t.Object({
-  username: t.String(),
-  password: t.String({ minLength: 5 }),
-});
-export type ValidateDoctorLogin = Static<typeof validateDoctorLogin>;
-
 export const createDoctorDTO = t.Object({
   username: t.String({ minLength: 5, error: 'username minimal 5 characters' }),
   password: t.String({ minLength: 5, error: 'password minimal 5 characters' }),
@@ -129,3 +123,15 @@ export const doctorScheduleDTO = t.Array(
   }
 );
 export type DoctorScheduleDTO = Static<typeof doctorScheduleDTO>;
+
+export const doctorTreatmentDTO = t.Array(
+  t.Object({
+    id: t.Optional(t.Number()),
+    name: t.String(),
+    price: t.Optional(t.Number()),
+    duration: t.Number(),
+    duration_type: t.String(),
+    is_active: t.Optional(t.Boolean({ default: true })),
+  })
+);
+export type DoctorTreatmentDTO = Static<typeof doctorTreatmentDTO>;

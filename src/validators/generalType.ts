@@ -20,3 +20,9 @@ export const changePasswordDTO = t.Object({
   new_password: t.String({ minLength: 5 }),
 });
 export type ChangePasswordDTO = Static<typeof changePasswordDTO>;
+
+export const validateLogin = t.Object({
+  username: t.String({ minLength: 1 }),
+  password: t.String({ minLength: 5 }),
+});
+export type ValidateLogin = Static<typeof validateLogin>;

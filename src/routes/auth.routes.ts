@@ -1,43 +1,63 @@
 import Elysia from 'elysia';
-import { AdminService } from '@/services';
+import { AdminService, DoctorService } from '@/services';
 import jwt from '@elysiajs/jwt';
-import { validateAdminLogin } from '@/validators';
 import { JWT_SECRET_MAPPING } from '@/const';
 import { JwtName } from '@/enum';
+import { validateLogin } from '@/validators';
 
 const AuthModels = new Elysia({ name: 'Model.Auth' }).model({
-  'Admin-auth': validateAdminLogin,
+  'Auth-model': validateLogin,
 });
 
-export const authRoutes = new Elysia({ prefix: '/auth' })
+export const authRoutes = new Elysia({
+  prefix: '/auth',
+  detail: {
+    tags: ['Auth'],
+    summary: 'Endpoits for authentication',
+  },
+})
   .use(AuthModels)
-  .use(
-    jwt({
-      name: JwtName.ADMIN,
-      secret: JWT_SECRET_MAPPING.adminJWT,
-    })
-  )
-  .group(
-    '/auth',
-    {
-      detail: {
-        tags: ['Auth'],
-        summary: 'Endpoits for authentication',
-      },
-    },
-    (app) => {
-      return app.post(
-        '/admin',
+  .group('/admin', (app) => {
+    return app
+      .use(
+        jwt({
+          name: JwtName.ADMIN,
+          secret: JWT_SECRET_MAPPING.adminJWT,
+        })
+      )
+      .post(
+        '/',
         async ({ body, adminJWT }) => {
           const admin = await AdminService.login(body);
           return { token: await adminJWT.sign(admin), admin };
         },
         {
-          body: 'Admin-auth',
+          body: 'Auth-model',
           detail: {
             description: 'Login as an admin',
           },
         }
       );
-    }
-  );
+  })
+  .group('/doctor', (app) => {
+    return app
+      .use(
+        jwt({
+          name: JwtName.DOCTOR,
+          secret: JWT_SECRET_MAPPING.doctorJWT,
+        })
+      )
+      .post(
+        '/',
+        async ({ body, doctorJWT }) => {
+          const doctor = await DoctorService.login(body);
+          return { token: await doctorJWT.sign(doctor), doctor };
+        },
+        {
+          body: 'Auth-model',
+          detail: {
+            description: 'Login as a doctor',
+          },
+        }
+      );
+  });
