@@ -135,3 +135,59 @@ export const doctorTreatmentDTO = t.Array(
   })
 );
 export type DoctorTreatmentDTO = Static<typeof doctorTreatmentDTO>;
+
+export enum GetDoctorSortBy {
+  CREATED_AT = 'created_at',
+  CREATED_AT_DESC = '-created_at',
+  NAME = 'name',
+  NAME_DESC = '-name',
+  EMAIL = 'email',
+  EMAIL_DESC = '-email',
+  PHONE = 'phone',
+  PHONE_DESC = '-phone',
+  NIK = 'nik',
+  NIK_DESC = '-nik',
+  USERNAME = 'username',
+  USERNAME_DESC = '-username',
+  UPDATED_AT = 'updated_at',
+  UPDATED_AT_DESC = '-updated_at',
+  DOB = 'dob',
+  DOB_DESC = '-dob',
+  CREATED_BY = 'created_by',
+  CREATED_BY_DESC = '-created_by',
+}
+
+export const getDoctorListFilterDTO = t.Partial(
+  t.Object({
+    page: t.Optional(
+      t.RegExp('^[1-9][0-9]*$', {
+        error: 'page can only be integer start from 1',
+        default: '1',
+      })
+    ),
+    limit: t.RegExp('^[1-9][0-9]*$', {
+      error: 'page can only be integer start from 1',
+      default: '10',
+    }),
+    sort: t.Optional(
+      t.Enum(GetDoctorSortBy, { default: GetDoctorSortBy.CREATED_AT_DESC })
+    ),
+    username: t.String({ minLength: 1 }),
+    name: t.String({ minLength: 1 }),
+    email: t.String({ minLength: 1 }),
+    gender: t.Enum(Gender, {
+      error: "Gender must be either 'MALE' or 'FEMALE'",
+      description: "'MALE' or 'FEMALE'",
+    }),
+    dob: t.String({
+      format: 'date',
+      examples: '2000-01-01',
+      error: 'DOB should be yyyy-MM-dd format',
+    }),
+    phone: t.String({ minLength: 1 }),
+    nik: t.String({ minLength: 1, maxLength: 16 }),
+    is_active: t.BooleanString(),
+    created_by: t.String({ minLength: 1 }),
+  })
+);
+export type GetDoctorListFilterDTO = Static<typeof getDoctorListFilterDTO>;

@@ -1,6 +1,7 @@
 import { db } from '@/db';
 import {
   Admin,
+  Doctor,
   academics,
   achievements,
   certificates,
@@ -21,12 +22,24 @@ import {
   DoctorTreatmentDTO,
   UpdateDoctorDTO,
   ValidateLogin,
+  GetDoctorListFilterDTO,
+  GetDoctorSortBy,
 } from '@/validators';
 
 import { CONSTRAINT_NAME, ERROR_MESSAGES, SUCCESS_MESSAGES } from '@/const';
 import { uploadFiles } from '@/utils';
 
-import { and, eq, inArray, notInArray } from 'drizzle-orm';
+import {
+  AnyColumn,
+  SQL,
+  and,
+  asc,
+  desc,
+  eq,
+  ilike,
+  inArray,
+  notInArray,
+} from 'drizzle-orm';
 
 export class DoctorService {
   static backgroundSchemaMap = {
@@ -36,6 +49,16 @@ export class DoctorService {
     achievements: achievements,
   };
   static async findDoctorById(id: string) {
+    const doctor = await db.query.doctors.findFirst({
+      where: (doctor, { eq }) => eq(doctor.id, id),
+      columns: {
+        password: false,
+      },
+    });
+    return doctor;
+  }
+
+  static async findDoctorByIdWithBackground(id: string) {
     const doctor = await db.query.doctors.findFirst({
       columns: {
         password: false,
@@ -57,6 +80,9 @@ export class DoctorService {
     const doctor = await db.query.doctors.findFirst({
       where({ id: doctor_id }, { eq }) {
         return eq(doctor_id, id);
+      },
+      columns: {
+        password: false,
       },
     });
 
@@ -251,7 +277,7 @@ export class DoctorService {
     }
   }
 
-  static async update(id: string, payload: UpdateDoctorDTO, admin: Admin) {
+  static async update(id: string, payload: UpdateDoctorDTO, admin?: Admin) {
     const doctor = await this.checkDoctorExist(id);
 
     //? Only update if payload.profile_picture is a file
@@ -275,13 +301,15 @@ export class DoctorService {
         await AccountActivityLogService.insertToLog(tx, {
           target_id: doctor.id,
           target_type: AccountType.DOCTOR,
-          actor_id: admin.id,
-          actor_type: AccountType.ADMIN,
+          actor_id: admin ? admin.id : doctor.id,
+          actor_type: admin ? AccountType.ADMIN : AccountType.DOCTOR,
           action: AccountActivity.UPDATE,
           details: payload,
         });
 
-        return SUCCESS_MESSAGES.UPDATE_ENTITY('Doctor', id);
+        return admin
+          ? SUCCESS_MESSAGES.UPDATE_ENTITY('Doctor', id)
+          : SUCCESS_MESSAGES.UPDATE_PROFILE;
       });
     } catch (error) {
       const constraint = (error as PostgresError).constraint_name;
@@ -321,7 +349,7 @@ export class DoctorService {
           const [returnedBackground] = await tx
             .insert(background)
             .values({ doctor_id, ...data })
-            .onConflictDoUpdate({ target: background.id, set: { ...data } })
+            .onConflictDoUpdate({ target: background.id, set: data })
             .returning({
               id: background.id,
             });
@@ -348,10 +376,9 @@ export class DoctorService {
           );
       });
 
-      return SUCCESS_MESSAGES.MODIFY_DOCTOR_BACKGROUND(
-        backgroundType,
-        doctor_id
-      );
+      return admin
+        ? SUCCESS_MESSAGES.MODIFY_DOCTOR_BACKGROUND(backgroundType, doctor_id)
+        : SUCCESS_MESSAGES.MODIFY_DOCTOR_BACKGROUND_SELF(backgroundType);
     } catch (error) {
       console.error(error);
       return customError(
@@ -420,7 +447,9 @@ export class DoctorService {
         });
       });
 
-      return SUCCESS_MESSAGES.MODIFY_DOCTOR_SERVICE(doctor_id, 'schedules');
+      return admin
+        ? SUCCESS_MESSAGES.MODIFY_DOCTOR_SERVICE(doctor_id, 'schedules')
+        : SUCCESS_MESSAGES.MODIFY_DOCTOR_BACKGROUND_SELF('schedules');
     } catch (error) {
       console.error(error);
       return customError(
@@ -473,10 +502,54 @@ export class DoctorService {
           );
       });
 
-      return SUCCESS_MESSAGES.MODIFY_DOCTOR_SERVICE(doctor_id, 'treatments');
+      return admin
+        ? SUCCESS_MESSAGES.MODIFY_DOCTOR_SERVICE(doctor_id, 'treatments')
+        : SUCCESS_MESSAGES.MODIFY_DOCTOR_BACKGROUND_SELF('treatments');
     } catch (error) {
       console.error(error);
       return ERROR_MESSAGES.MODITY_DOCTOR_SERVICES(doctor_id, 'treatments');
+    }
+  }
+
+  static async getList(query: GetDoctorListFilterDTO) {
+    const filters: SQL[] = [];
+
+    for (const key in omit(query, ['page', 'limit', 'sort', 'dob'])) {
+      const value =
+        query[
+          key as keyof Omit<GetDoctorListFilterDTO, 'page' | 'limit' | 'dob'>
+        ];
+
+      if (typeof value === 'string') {
+        filters.push(ilike(doctors[key as keyof Doctor], `%${value}%`));
+      }
+    }
+
+    if (typeof query.is_active === 'boolean') {
+      filters.push(eq(doctors.is_active, query.is_active));
+    }
+
+    if (query.dob) {
+      filters.push(eq(doctors.dob, query.dob));
+    }
+
+    const column = query.sort || GetDoctorSortBy.CREATED_AT_DESC;
+    const order = column.startsWith('-') ? desc : asc;
+
+    const limit = Number(query.limit) || 10;
+    const page = Number(query.page) || 1;
+    try {
+      return await db.query.doctors.findMany({
+        columns: {
+          password: false,
+        },
+        where: and(...filters),
+        limit,
+        offset: (page - 1) * (limit ?? 10),
+        orderBy: order(column.replace('-', '') as unknown as AnyColumn<Doctor>),
+      });
+    } catch (error) {
+      console.error(error);
     }
   }
 }

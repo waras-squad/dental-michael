@@ -1,7 +1,7 @@
 import { JWT_SECRET_MAPPING } from '@/const';
 import { JwtName } from '@/enum';
 import { customError } from '@/helpers';
-import { AdminService, PatientService } from '@/services';
+import { AdminService, DoctorService, PatientService } from '@/services';
 import jwt from '@elysiajs/jwt';
 import Elysia, { t } from 'elysia';
 
@@ -20,7 +20,12 @@ export const authMiddleware = (type: JwtName) => (app: Elysia) => {
       })
     )
     .derive(async ({ adminJWT, doctorJWT, userJWT, request }) => {
-      const jwt = adminJWT || doctorJWT || userJWT;
+      const jwtMap = {
+        adminJWT,
+        doctorJWT,
+        userJWT,
+      };
+      const jwt = jwtMap[type];
 
       const token = request.headers.get('Authorization')?.split(' ')[1];
 
@@ -51,12 +56,13 @@ export const authMiddleware = (type: JwtName) => (app: Elysia) => {
           return { user };
         }
 
-        case JwtName.DOCTOR:
-          return {
-            doctor: {
-              id: 'uuid',
-            },
-          };
+        case JwtName.DOCTOR: {
+          const doctor = await DoctorService.findDoctorById(payload.id);
+          if (!doctor) {
+            return authenticationError();
+          }
+          return { doctor };
+        }
       }
     });
 };

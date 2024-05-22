@@ -1,7 +1,7 @@
 import { Elysia, error } from 'elysia';
 import { cors } from '@elysiajs/cors';
 
-import { adminRoutes, authRoutes } from './routes';
+import { adminRoutes, authRoutes, doctorRoutes } from './routes';
 import { swaggerConfig, responseInterceptor } from './middlewares';
 import { env } from './validators';
 
@@ -21,7 +21,7 @@ app
     }
   })
   .group('/api', (app) => {
-    return app.use(adminRoutes).use(authRoutes);
+    return app.use(authRoutes).use(adminRoutes).use(doctorRoutes);
   })
   .listen(env.PORT);
 

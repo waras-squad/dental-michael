@@ -9,49 +9,29 @@ import {
 
 import {
   BackgroundTypeKey,
-  academicDTO,
-  achievementDTO,
-  certificateDTO,
-  changePasswordDTO,
-  createAdminDTO,
-  createDoctorDTO,
   createPatientDTO,
-  doctorScheduleDTO,
   editPatientDTO,
-  experienceDTO,
   getPatientListFilterDTO,
-  doctorTreatmentDTO,
-  updateDoctorDTO,
   uploadUserFileDTO,
 } from '@/validators';
-import { JwtName } from '@/enum';
-import { authMiddleware } from '@/middlewares';
-import { getAllPatientFilterSwaggerParameter } from '@/utils';
 
-const generalModels = new Elysia({ name: 'Model.General' }).model({
-  'Change-password': changePasswordDTO,
-});
+import { JwtName } from '@/enum';
+import {
+  adminModels,
+  authMiddleware,
+  doctorModels,
+  generalModels,
+} from '@/middlewares';
+import {
+  getAllDoctorFilterSwaggerParameter,
+  getAllPatientFilterSwaggerParameter,
+} from '@/utils';
 
 const patientModels = new Elysia({ name: 'Model.Admin.Patient' }).model({
   'Get-patient-filter': getPatientListFilterDTO,
   'Create-patient': createPatientDTO,
   'Update-patient': editPatientDTO,
   'Upload-patient-file': uploadUserFileDTO,
-});
-
-const doctorModels = new Elysia({ name: 'Mode.Admin.Doctor' }).model({
-  'Create-doctor': createDoctorDTO,
-  'Update-doctor': updateDoctorDTO,
-  'Modify-academic': academicDTO,
-  'Modify-experience': experienceDTO,
-  'Modify-certificate': certificateDTO,
-  'Modify-achievement': achievementDTO,
-  'Modify-schedule': doctorScheduleDTO,
-  'Modify-treatment': doctorTreatmentDTO,
-});
-
-const adminModels = new Elysia({ name: 'Model.Admin.Admin' }).model({
-  'Create-Admin': createAdminDTO,
 });
 
 export const adminRoutes = new Elysia({
@@ -183,10 +163,17 @@ export const adminRoutes = new Elysia({
     (app) =>
       app
         .use(doctorModels)
+        .get('/', ({ query }) => DoctorService.getList(query), {
+          query: 'Get-doctor-filter',
+          detail: {
+            summary: 'Get all doctors with pagination',
+            parameters: getAllDoctorFilterSwaggerParameter,
+          },
+        })
         .get(
           '/:uuid',
           async ({ params: { uuid } }) => {
-            return await DoctorService.findDoctorById(uuid);
+            return await DoctorService.findDoctorByIdWithBackground(uuid);
           },
           {
             detail: {
@@ -235,7 +222,7 @@ export const adminRoutes = new Elysia({
               description:
                 'if id is provided, it will be editted, otherwise it will be created',
             },
-            body: 'Modify-academic',
+            body: 'Modify-academics',
           }
         )
         .put(
@@ -255,7 +242,7 @@ export const adminRoutes = new Elysia({
               description:
                 'if id is provided, it will be editted, otherwise it will be created',
             },
-            body: 'Modify-achievement',
+            body: 'Modify-achievements',
           }
         )
         .put(
@@ -275,7 +262,7 @@ export const adminRoutes = new Elysia({
               description:
                 'if id is provided, it will be editted, otherwise it will be created',
             },
-            body: 'Modify-certificate',
+            body: 'Modify-certificates',
           }
         )
         .put(
@@ -295,7 +282,7 @@ export const adminRoutes = new Elysia({
               description:
                 'if id is provided, it will be editted, otherwise it will be created, the exsiting will be deleted',
             },
-            body: 'Modify-experience',
+            body: 'Modify-experiences',
           }
         )
         .put(
@@ -309,7 +296,7 @@ export const adminRoutes = new Elysia({
               description:
                 'The schedules will be updated by id, and time format should be HH:mm',
             },
-            body: 'Modify-schedule',
+            body: 'Modify-schedules',
           }
         )
         .put(
@@ -323,7 +310,7 @@ export const adminRoutes = new Elysia({
               description:
                 'if ID is provided, it will be edited, otherwise it will be created, the exsiting will be deleted',
             },
-            body: 'Modify-treatment',
+            body: 'Modify-treatments',
           }
         )
         .delete(

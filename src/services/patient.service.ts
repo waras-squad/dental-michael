@@ -30,9 +30,11 @@ export class PatientService {
   static async getList(query: GetPatientListFilterDTO) {
     const filters: SQL[] = [];
 
-    for (const key in omit(query, ['page', 'limit', 'sort'])) {
+    for (const key in omit(query, ['page', 'limit', 'sort', 'dob'])) {
       const value =
-        query[key as keyof Omit<GetPatientListFilterDTO, 'page' | 'limit'>];
+        query[
+          key as keyof Omit<GetPatientListFilterDTO, 'page' | 'limit' | 'dob'>
+        ];
 
       if (typeof value === 'string') {
         filters.push(ilike(patients[key as keyof Patient], `%${value}%`));
@@ -45,6 +47,10 @@ export class PatientService {
           ? isNotNull(patients.deleted_at)
           : isNull(patients.deleted_at)
       );
+    }
+
+    if (query.dob) {
+      filters.push(eq(patients.dob, query.dob));
     }
 
     const column = query.sort || GetPatientSortBy.CREATED_AT_DESC;

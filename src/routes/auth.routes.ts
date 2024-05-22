@@ -3,11 +3,7 @@ import { AdminService, DoctorService } from '@/services';
 import jwt from '@elysiajs/jwt';
 import { JWT_SECRET_MAPPING } from '@/const';
 import { JwtName } from '@/enum';
-import { validateLogin } from '@/validators';
-
-const AuthModels = new Elysia({ name: 'Model.Auth' }).model({
-  'Auth-model': validateLogin,
-});
+import { AuthModels } from '@/middlewares';
 
 export const authRoutes = new Elysia({
   prefix: '/auth',
@@ -51,6 +47,10 @@ export const authRoutes = new Elysia({
         '/',
         async ({ body, doctorJWT }) => {
           const doctor = await DoctorService.login(body);
+          const token = await doctorJWT.sign(doctor);
+          console.log(token);
+          console.log(await doctorJWT.verify(token));
+
           return { token: await doctorJWT.sign(doctor), doctor };
         },
         {

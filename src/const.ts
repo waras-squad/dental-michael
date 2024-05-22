@@ -1332,6 +1332,16 @@ export const SUCCESS_MESSAGES = {
     doctor_id: string,
     service: 'schedules' | 'treatments'
   ) => `Successfully modify ${service} for doctor ${doctor_id}`,
+  UPDATE_PROFILE: 'Successfully update your own profile',
+  MODIFY_DOCTOR_BACKGROUND_SELF: (
+    background:
+      | 'academics'
+      | 'experiences'
+      | 'certifications'
+      | 'achievements'
+      | 'schedules'
+      | 'treatments'
+  ) => `Successfully modify your ${background}`,
 };
 
 export const ERROR_MESSAGES = {

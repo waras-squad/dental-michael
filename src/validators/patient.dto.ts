@@ -25,9 +25,16 @@ export const getPatientListFilterDTO = t.Object({
       error: "Gender have to be either 'MALE' OR 'FEMALE'",
     })
   ),
-  nik: t.RegExp('^d{16}$', { error: 'Invalid NIK' }),
+  nik: t.Optional(t.String({ maxLength: 1 })),
+  dob: t.Optional(
+    t.String({
+      format: 'date',
+      examples: '2000-01-01',
+      error: 'DOB should be yyyy-MM-dd format',
+    })
+  ),
   created_by: t.Optional(t.String({ minLength: 1 })),
-  is_deleted: t.Optional(t.BooleanString({ default: 'false' })),
+  is_deleted: t.Optional(t.BooleanString()),
   page: t.Optional(
     t.RegExp('^[1-9][0-9]*$', {
       error: 'page can only be integer start from 1',
@@ -41,7 +48,7 @@ export const getPatientListFilterDTO = t.Object({
     })
   ),
   sort: t.Optional(
-    t.Enum(GetPatientSortBy, { default: GetPatientSortBy.CREATED_AT })
+    t.Enum(GetPatientSortBy, { default: GetPatientSortBy.CREATED_AT_DESC })
   ),
 });
 
