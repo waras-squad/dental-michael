@@ -62,7 +62,9 @@ export const createPatientDTO = t.Object({
     error: 'Phone must be indonesian format',
     minLength: 9,
   }),
-  nik: t.String({ minLength: 16, maxLength: 16, error: 'Invalid NIK' }),
+  nik: t.Optional(
+    t.String({ minLength: 16, maxLength: 16, error: 'Invalid NIK' })
+  ),
   gender: t.Enum(Gender, {
     error: "Gender have to be either 'MALE' OR 'FEMALE'",
   }),
