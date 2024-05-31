@@ -12,6 +12,7 @@ import {
   createPatientDTO,
   editPatientDTO,
   getPatientListFilterDTO,
+  getUserFileListDTO,
   uploadUserFileDTO,
 } from '@/validators';
 
@@ -25,6 +26,7 @@ import {
 import {
   getAllDoctorFilterSwaggerParameter,
   getAllPatientFilterSwaggerParameter,
+  getPatientFilesFilterSwaggerParameter,
 } from '@/utils';
 
 const patientModels = new Elysia({ name: 'Model.Admin.Patient' }).model({
@@ -32,6 +34,7 @@ const patientModels = new Elysia({ name: 'Model.Admin.Patient' }).model({
   'Create-patient': createPatientDTO,
   'Update-patient': editPatientDTO,
   'Upload-patient-file': uploadUserFileDTO,
+  'Get-patient-files': getUserFileListDTO,
 });
 
 export const adminRoutes = new Elysia({
@@ -75,6 +78,19 @@ export const adminRoutes = new Elysia({
           {
             detail: {
               summary: 'Get One Patient by UUID',
+            },
+          }
+        )
+        .get(
+          '/:uuid/files',
+          async ({ params: { uuid }, query }) => {
+            return await UserFileService.getFiles(uuid, query);
+          },
+          {
+            query: 'Get-patient-files',
+            detail: {
+              summary: 'Get the uploaded files for specific user',
+              parameters: getPatientFilesFilterSwaggerParameter,
             },
           }
         )

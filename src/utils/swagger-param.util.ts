@@ -1,14 +1,18 @@
 import { Gender } from '@/enum';
-import { GetDoctorSortBy, GetPatientSortBy } from '@/validators';
+import {
+  GetDoctorSortBy,
+  GetFilesSortBy,
+  GetPatientSortBy,
+} from '@/validators';
 
-type SwaggarParameter = {
+type SwaggerParameter = {
   in: string;
   name: string;
   description?: string;
   schema: Record<string, unknown>;
 };
 
-export const getAllPatientFilterSwaggerParameter: SwaggarParameter[] = [
+export const getAllPatientFilterSwaggerParameter: SwaggerParameter[] = [
   {
     in: 'query',
     name: 'name',
@@ -103,7 +107,7 @@ export const getAllPatientFilterSwaggerParameter: SwaggarParameter[] = [
   },
 ];
 
-export const getAllDoctorFilterSwaggerParameter: SwaggarParameter[] = [
+export const getAllDoctorFilterSwaggerParameter: SwaggerParameter[] = [
   {
     in: 'query',
     name: 'username',
@@ -199,6 +203,50 @@ export const getAllDoctorFilterSwaggerParameter: SwaggarParameter[] = [
       type: 'string',
       enum: Object.values(GetDoctorSortBy),
       default: GetDoctorSortBy.CREATED_AT_DESC,
+    },
+  },
+];
+
+export const getPatientFilesFilterSwaggerParameter: SwaggerParameter[] = [
+  {
+    in: 'query',
+    name: 'name',
+    schema: {
+      type: 'string',
+    },
+  },
+  {
+    in: 'query',
+    name: 'type',
+    schema: {
+      type: 'string',
+    },
+  },
+  {
+    in: 'query',
+    name: 'page',
+    schema: {
+      type: 'integer',
+      default: 1,
+    },
+  },
+  {
+    in: 'query',
+    name: 'limit',
+    description: 'Number of items per page',
+    schema: {
+      type: 'integer',
+      default: 10,
+    },
+  },
+  {
+    in: 'query',
+    name: 'sort',
+    description: 'Sort by field',
+    schema: {
+      type: 'string',
+      enum: Object.values(GetFilesSortBy),
+      default: GetFilesSortBy.CREATED_AT_DESC,
     },
   },
 ];

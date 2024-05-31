@@ -83,3 +83,32 @@ export const uploadUserFileDTO = t.Object({
   type: t.Optional(t.String({ minLength: 1 })),
 });
 export type UploadUserFileDTO = Static<typeof uploadUserFileDTO>;
+
+export enum GetFilesSortBy {
+  NAME = 'name',
+  NAME_DESC = '-name',
+  TYPE = 'type',
+  TYPE_DESC = '-type',
+  CREATED_AT = 'created_at',
+  CREATED_AT_DESC = '-created_at',
+}
+
+export const getUserFileListDTO = t.Partial(
+  t.Object({
+    name: t.String({ minLength: 1 }),
+    type: t.String({ minLength: 1 }),
+    page: t.RegExp('^[1-9][0-9]*$', {
+      error: 'page can only be integer start from 1',
+      default: '1',
+    }),
+    limit: t.RegExp('^[1-9][0-9]*$', {
+      error: 'lpage can only be integer start from 1',
+      default: '10',
+    }),
+    sort: t.Enum(GetFilesSortBy, {
+      default: GetFilesSortBy.CREATED_AT_DESC,
+    }),
+  })
+);
+
+export type GetUserFileListDTO = Static<typeof getUserFileListDTO>;
