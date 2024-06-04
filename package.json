@@ -9,7 +9,7 @@
     "start": "bun build/index.js"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.587.0",
+    "@aws-sdk/client-s3": "^3.590.0",
     "@elysiajs/cors": "^1.0.2",
     "@elysiajs/jwt": "^1.0.2",
     "@elysiajs/swagger": "^1.0.5",
@@ -17,12 +17,15 @@
     "drizzle-typebox": "^0.1.1",
     "elysia": "^1.0.22",
     "postgres": "^3.4.4",
-    "ts-luxon": "^5.0.0"
+    "ts-luxon": "^5.0.2"
   },
   "devDependencies": {
     "@biomejs/biome": "1.7.3",
     "@flydotio/dockerfile": "^0.5.7",
     "bun-types": "latest"
   },
-  "module": "src/index.js"
+  "module": "src/index.js",
+  "trustedDependencies": [
+    "@biomejs/biome"
+  ]
 }
